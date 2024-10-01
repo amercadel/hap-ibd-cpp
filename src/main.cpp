@@ -11,22 +11,18 @@ extern "C"
 #include "pbwt.h"
 }
 
-float getGeneticPosition(std::vector<int> &site_mapping, std::vector<float> &interpolated_cm, int site_idx){
-	int site_bp_pos = site_mapping[site_idx];
-	float genetic_position = interpolated_cm[site_bp_pos];
+float getGeneticPosition(std::vector<float> &interpolated_cm, int site_idx){
+	float genetic_position = interpolated_cm[site_idx];
 	return genetic_position;
 }
 
 int main(int argc, char **argv){
 	char *input_vcf = argv[1];
 	char *plink_rate_map = argv[2];
-	std::vector<int> site_mapping = getSiteMapping(input_vcf);	
-	std::vector<int> *all_sites = new std::vector<int>;
-	for (int i = 0; i < site_mapping.back() + 1; i++){
-		all_sites->push_back(i);
-	}
-	rateMapData gen_map = readRateMap(plink_rate_map, *all_sites);
-	delete all_sites;
+	std::vector<int> site_mapping = getSiteMapping(input_vcf);
+
+	rateMapData gen_map = readRateMap(plink_rate_map, site_mapping);
+
 
 	pbwtInit();
 	PBWT* p = 0;
@@ -50,8 +46,8 @@ int main(int argc, char **argv){
 	std::cout << "fetching matches\n";
 	while(std::getline(match_file, line)){
 		Match m(line);
-		float f1 = getGeneticPosition(site_mapping, gen_map.interpolated_cm, m.start_site);
-		float f2 = getGeneticPosition(site_mapping, gen_map.interpolated_cm, m.end_site - 1);
+		float f1 = getGeneticPosition(gen_map.interpolated_cm, m.start_site);
+		float f2 = getGeneticPosition(gen_map.interpolated_cm, m.end_site - 1);
 		float len = f2 - f1;
 		if (len > min_extend){
 			m.len_cm = len;

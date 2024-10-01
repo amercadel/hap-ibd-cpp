@@ -107,7 +107,7 @@ int nextStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site
             }
         }
     }
-    float len = gen_map.interpolated_cm[site_mapping[first_match]] - gen_map.interpolated_cm[site_mapping[m]];
+    float len = gen_map.interpolated_cm[first_match] - gen_map.interpolated_cm[m];
     if (len >= min_seed && (first_match - m) >= min_extend_markers){
         return -1;
     }
@@ -149,7 +149,7 @@ int nextInclEnd(int hap1, int hap2, int end, int max_gap, std::vector<int> &site
         }
 
     }
-    float len = (gen_map.interpolated_cm[site_mapping[m]] - gen_map.interpolated_cm[site_mapping[first_match]]);
+    float len = (gen_map.interpolated_cm[m] - gen_map.interpolated_cm[first_match]);
     return (len<min_extend || (m-first_match)<min_extend_markers) ? incl_end : m;
 }
 
@@ -188,8 +188,8 @@ std::string processSeed(int hap1, int hap2, int start, int incl_end, int max_gap
     start = extendStart(hap1, hap2, start, max_gap, site_mapping, matches, gen_map, min_seed, min_extend, min_extend_markers);
     if (start>=0) {
         incl_end = extendInclEnd(hap1, hap2, incl_end, max_gap, site_mapping, matches, gen_map, min_seed, min_extend, min_extend_markers);
-        if ((gen_map.interpolated_cm[site_mapping[incl_end]] - gen_map.interpolated_cm[site_mapping[start]])>=min_output) {
-            out << hapToTskId(hap1) << "\t" << hapToTskId(hap2) << "\t" << "20" << "\t" << site_mapping[start] << "\t" << site_mapping[incl_end] << "\t" << roundToNDigits(gen_map.interpolated_cm[site_mapping[incl_end]] - gen_map.interpolated_cm[site_mapping[start]], 3) << "\n";
+        if ((gen_map.interpolated_cm[incl_end] - gen_map.interpolated_cm[start])>=min_output) {
+            out << hapToTskId(hap1) << "\t" << hapToTskId(hap2) << "\t" << "20" << "\t" << site_mapping[start] << "\t" << site_mapping[incl_end] << "\t" << roundToNDigits(gen_map.interpolated_cm[incl_end] - gen_map.interpolated_cm[start], 3) << "\n";
             }
         return out.str();
         }

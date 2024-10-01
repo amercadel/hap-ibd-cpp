@@ -54,7 +54,7 @@ struct rateMapData{
     std::vector<float> cm_vec;
     std::vector<float> interpolated_cm;
     
-    std::vector<float> interpolateVector(std::vector<int> &sites, std::vector<int> &bp_vec, std::vector<float> &cm_vec);
+    std::vector<float> interpolateVector(std::vector<int> &sites);
     float interpolateBasePairToGenPos(int site);
     int last_bp;
     float last_cm;
@@ -64,28 +64,42 @@ struct rateMapData{
     };
 
 };
-std::vector<float> rateMapData::interpolateVector(std::vector<int> &sites, std::vector<int> &bp, std::vector<float> &cm) {
-    std::vector<float> interpolated_cm;
-    int n = sites.size();
-    int m = bp.size();
-    for (int i = 0; i < n; i++){
-        int j = findInsertionIndex(bp_vec, sites[i]);
-        if (j == 0){
-            interpolated_cm.push_back(cm[0]);
-        }else if (j == m){
-            interpolated_cm.push_back(cm[m - 1]);
-        }else{
-            int x0 = bp[j - 1];
-            int x1 = bp[j];
-            float y0 = cm[j - 1];
-            float y1 = cm[j];
-            int x = sites[i];
-            float y = ((y0 * (x1 - x)) + (y1 * (x - x0))) / (x1 - x0);
-            interpolated_cm.push_back(y);
+float rateMapData::interpolateBasePairToGenPos(int site){
+    int idx = findVectorIndex(bp_vec, site);
+    if (idx > 0){
+        return cm_vec[idx];
+    }
+    else{
+        idx = findInsertionIndex(bp_vec, site);
+        if (idx == 0){
+            return cm_vec[0];
         }
+        else if(idx == bp_vec.size()){
+            return cm_vec.back();
+        }
+        else{
+            int x0 = bp_vec[idx - 1];
+            int x1 = bp_vec[idx];
+            float y0 = cm_vec[idx - 1];
+            float y1 = cm_vec[idx];
+            float y = ((y0 * (x1 - site)) + (y1 * (site - x0))) / (x1 - x0);
+            return y;
+
+        }
+    }
+
+
+}
+
+std::vector<float> rateMapData::interpolateVector(std::vector<int> &sites) {
+    std::vector<float> interpolated_cm;
+    for(size_t c = 0; c < sites.size(); c++){
+        interpolated_cm.push_back(interpolateBasePairToGenPos(sites[c]));
     }
     return interpolated_cm;
 }
+
+
 
 
 rateMapData readRateMap(char* filename, std::vector<int> &sites){
@@ -114,7 +128,7 @@ rateMapData readRateMap(char* filename, std::vector<int> &sites){
     res.last_bp = bp_vec[bp_vec.size() - 1];
     res.last_cm = cm_vec[cm_vec.size() - 1];
     std::cout << "interpolating rate map\n";
-    res.interpolated_cm = res.interpolateVector(sites, res.bp_vec, res.cm_vec);
+    res.interpolated_cm = res.interpolateVector(sites);
     std::cout << "rate map interpolated\n";
     return res;
 }

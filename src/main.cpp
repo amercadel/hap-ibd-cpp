@@ -21,11 +21,7 @@ int main(int argc, char **argv){
 	char *input_vcf = argv[1];
 	char *plink_rate_map = argv[2];
 	std::vector<int> site_mapping = getSiteMapping(input_vcf);	
-	
 	rateMapData gen_map = readRateMap(plink_rate_map, site_mapping);
-	// for (size_t i = 0; i < site_mapping.size(); i++){
-	// 	std::cout << i << "\t" << site_mapping[i] << "\t" << gen_map.interpolated_cm[i] << std::endl;
-	// }
 	pbwtInit();
 	PBWT* p = 0;
 	if(p){
@@ -61,7 +57,6 @@ int main(int argc, char **argv){
 	std::vector<Match> filtered_matches;
 	size_t i = 0;
 	while(i < matches.size() - 1){
-		std::cout << i << std::endl;
 		if(matches[i] == matches[i+1]){
 			filtered_matches.push_back(matches[i]);
 			i = i + 2;

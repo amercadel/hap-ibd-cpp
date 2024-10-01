@@ -1,3 +1,6 @@
 [submodule "pbwt"]
 	path = pbwt
 	url = https://github.com/amercadel/pbwt.git
+[submodule "htslib"]
+	path = htslib
+	url = https://github.com/samtools/htslib.git

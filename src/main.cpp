@@ -21,17 +21,11 @@ int main(int argc, char **argv){
 	char *input_vcf = argv[1];
 	char *plink_rate_map = argv[2];
 	std::vector<int> site_mapping = getSiteMapping(input_vcf);	
-	std::vector<int> *all_sites = new std::vector<int>;
-	for (int i = 0; i < site_mapping.back() + 1; i++){
-		all_sites->push_back(i);
-	}
-	for (size_t i = 0; i < site_mapping.size(); i++){
-		std::cout << site_mapping[i] << std::endl;
-	}
-	rateMapData gen_map = readRateMap(plink_rate_map, *all_sites);
-	delete all_sites;
-	std::cout << gen_map.interpolated_cm.size() << "\t" << gen_map.interpolated_cm.back() << std::endl;
-	std::cout << gen_map.bp_vec.back() << std::endl;
+	
+	rateMapData gen_map = readRateMap(plink_rate_map, site_mapping);
+	// for (size_t i = 0; i < site_mapping.size(); i++){
+	// 	std::cout << i << "\t" << site_mapping[i] << "\t" << gen_map.interpolated_cm[i] << std::endl;
+	// }
 	pbwtInit();
 	PBWT* p = 0;
 	if(p){

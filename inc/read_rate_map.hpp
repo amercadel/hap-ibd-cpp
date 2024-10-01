@@ -16,12 +16,46 @@ std::vector<std::string> split(std::string &line, char delim){
 
 }
 
+template<typename T>
+T findVectorIndex(std::vector<T> &vec, T val){
+    int left = 0;
+    int right = vec.size() - 1;
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+        if (vec[mid] == val) {
+            return mid;
+        } else if (vec[mid] < val) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+    return -1;
+}
+template<typename T>
+T findInsertionIndex(std::vector<T> &vec, T val){
+    int left = 0;
+    int right = vec.size() - 1;
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+        if (vec[mid] == val) {
+            return mid;
+        } else if (vec[mid] < val) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+    return left;
+}
+
 struct rateMapData{
     std::vector<int> bp_vec;
     std::vector<float> cm_vec;
     std::vector<float> interpolated_cm;
     
     std::vector<float> interpolateVector(std::vector<int> &sites, std::vector<int> &bp_vec, std::vector<float> &cm_vec);
+    float interpolateBasePairToGenPos(int site);
     int last_bp;
     float last_cm;
 
@@ -34,11 +68,8 @@ std::vector<float> rateMapData::interpolateVector(std::vector<int> &sites, std::
     std::vector<float> interpolated_cm;
     int n = sites.size();
     int m = bp.size();
-    int j = 0;
     for (int i = 0; i < n; i++){
-        while(j < m && bp[j] < sites[i]){
-            j++;
-        }
+        int j = findInsertionIndex(bp_vec, sites[i]);
         if (j == 0){
             interpolated_cm.push_back(cm[0]);
         }else if (j == m){

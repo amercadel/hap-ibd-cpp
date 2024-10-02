@@ -3,6 +3,9 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <chrono>
+#include <cstdio>
+#include <unistd.h>
 #include "match.hpp"
 #include "read_rate_map.hpp"
 #include "vcf.hpp"
@@ -11,12 +14,12 @@ extern "C"
 #include "pbwt.h"
 }
 
-float getGeneticPosition(std::vector<float> &interpolated_cm, int site_idx){
-	float genetic_position = interpolated_cm[site_idx];
-	return genetic_position;
-}
+
+
+
 
 int main(int argc, char **argv){
+	auto start = std::chrono::steady_clock::now();
 	char *input_vcf = argv[1];
 	char *plink_rate_map = argv[2];
 	std::vector<int> site_mapping = getSiteMapping(input_vcf);
@@ -31,9 +34,17 @@ int main(int argc, char **argv){
 	}
 	std::cout << "running pbwt\n";
 	p = pbwtReadVcfGT(input_vcf);
-	 freopen ("intermediate_matches.txt","w",stdout);
-    pbwtLongMatches(p, 0);
-    fclose(stdout);
+
+	int original_stdout_fd = dup(fileno(stdout));
+
+	// // Redirect stdout to the file
+	freopen("intermediate_matches.txt", "w", stdout);
+	pbwtLongMatches(p, 0);
+
+	// Restore the original stdout
+	fflush(stdout);
+	dup2(original_stdout_fd, fileno(stdout));
+	close(original_stdout_fd);
 	float min_extend = 1.0f;
     std::ifstream match_file;
 	match_file.open("intermediate_matches.txt");
@@ -70,6 +81,7 @@ int main(int argc, char **argv){
 	}
 	
 	std::ofstream output_file("output_matches.txt");
+	std::sort(filtered_matches.begin(), filtered_matches.end(), compareHaps);
 	for(size_t c = 0; c < filtered_matches.size(); c++){
 		Match m = filtered_matches[c];
 		std::string out;
@@ -77,6 +89,10 @@ int main(int argc, char **argv){
 		output_file << out;
 	}
 	output_file.close();
+	auto end = std::chrono::steady_clock::now();
+    auto diff = end - start;
+    std::cout << std::chrono::duration<double>(diff).count() << " seconds" << std::endl;
+
 	
 	
 	return 0;

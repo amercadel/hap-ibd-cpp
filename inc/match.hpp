@@ -64,12 +64,12 @@ class Match{
 //     return m1.hap2 < m2.hap2;
 // }
 
-// static bool compareHaps(const Match &m1, const Match &m2) {
-//     if (m1.hap1 == m2.hap1) {
-//         return m1.hap2 < m2.hap2;
-//     }
-//     return m1.hap1 < m2.hap1;
-// }
+static bool compareHaps(const Match &m1, const Match &m2) {
+    if (m1.hap1 == m2.hap1) {
+        return m1.hap2 < m2.hap2;
+    }
+    return m1.hap1 < m2.hap1;
+}
 
 
 bool checkAllele(int hap1, int hap2, int site, std::vector<Match> matches){

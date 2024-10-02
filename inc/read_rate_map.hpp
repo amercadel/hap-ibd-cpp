@@ -5,6 +5,11 @@
 #include <cmath>
 #include <unordered_map>
 
+float getGeneticPosition(std::vector<float> &interpolated_cm, int site_idx){
+	float genetic_position = interpolated_cm[site_idx];
+	return genetic_position;
+}
+
 std::vector<std::string> split(std::string &line, char delim){
     std::vector<std::string> split_string;
     std::string str;

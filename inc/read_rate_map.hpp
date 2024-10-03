@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cmath>
 #include <unordered_map>
+#include "utils.hpp"
 
 float getGeneticPosition(std::vector<float> &interpolated_cm, int site_idx){
 	float genetic_position = interpolated_cm[site_idx];
@@ -21,38 +22,7 @@ std::vector<std::string> split(std::string &line, char delim){
 
 }
 
-template<typename T>
-T findVectorIndex(std::vector<T> &vec, T val){
-    int left = 0;
-    int right = vec.size() - 1;
-    while (left <= right) {
-        int mid = left + (right - left) / 2;
-        if (vec[mid] == val) {
-            return mid;
-        } else if (vec[mid] < val) {
-            left = mid + 1;
-        } else {
-            right = mid - 1;
-        }
-    }
-    return -1;
-}
-template<typename T>
-T findInsertionIndex(std::vector<T> &vec, T val){
-    int left = 0;
-    int right = vec.size() - 1;
-    while (left <= right) {
-        int mid = left + (right - left) / 2;
-        if (vec[mid] == val) {
-            return mid;
-        } else if (vec[mid] < val) {
-            left = mid + 1;
-        } else {
-            right = mid - 1;
-        }
-    }
-    return left;
-}
+
 
 struct rateMapData{
     std::vector<int> bp_vec;

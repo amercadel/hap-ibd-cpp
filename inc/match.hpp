@@ -12,6 +12,7 @@
 
 
 
+
 class Match{
     public:
         int hap1;
@@ -168,11 +169,7 @@ int extendInclEnd(int hap1, int hap2, int end, int max_gap, std::vector<int> &si
 
     return next_incl_end;
 }
-template<typename T>
-T roundToNDigits(T num, int n_digits){
-    auto scale = std::pow(10.0, n_digits);
-    return std::round(num * scale) / scale;
-}
+
 
 std::string hapToTskId(int hap){
     int id = hap / 2;

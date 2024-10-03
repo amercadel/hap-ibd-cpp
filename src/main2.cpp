@@ -7,7 +7,6 @@
 #include <cstdio>
 #include <unistd.h>
 #include "match.hpp"
-#include "read_rate_map.hpp"
 #include "vcf.hpp"
 extern "C"
 {
@@ -23,16 +22,18 @@ class hapIBDCpp{
 			this->plink_rate_map = plink_rate_map;
 			this->output_file_path = output_file_path;
 			this->site_mapping = getSiteMapping(input_vcf);
-			this->gen_map = readRateMap(input_vcf, site_mapping);
+			this->gen_map = readRateMap(plink_rate_map, site_mapping);
 			this->min_seed = min_seed;
 			this->max_gap = max_gap;
 			this->min_extend = std::min(1.0f, this->min_seed);
 			this->min_output = min_output;
 			this->min_markers = min_markers;
 			this->min_mac = min_mac;
-			this->runPBWT();
-			this->getMatches();
-			this->processSeeds();
+			// this->runPBWT();
+			// this->getMatches();
+			// this->processSeeds();
+			// overlappingWindows(gen_map.cm_vec, this->min_seed, this->min_markers, 4);
+
 			
 		}
 

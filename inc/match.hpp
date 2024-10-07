@@ -27,14 +27,14 @@ class Match{
             this->hap1 = std::min(stoi(split_str[1]), stoi(split_str[2]));
             this->hap2 = std::max(stoi(split_str[1]), stoi(split_str[2]));
             this->start_site = stoi(split_str[3]);
-            this->end_site = stoi(split_str[4]);
+            this->end_site = stoi(split_str[4]) - 1;
             this->n_sites = stoi(split_str[5]);
         }
         Match(int hap1, int hap2, int start_site, int end_site){
             this->hap1 = hap1;
             this->hap2 = hap2;
             this->start_site = start_site;
-            this->end_site = end_site;
+            this->end_site = end_site - 1;
             this->n_sites = end_site - start_site;
         }
         void display(){
@@ -52,10 +52,10 @@ class Match{
 };
 
 
-// static bool compareStartSite(const Match &m1, const Match &m2){
-//     // m1 must be to the left of m2
-//     return m1.start_site < m2.start_site;
-// }
+static bool compareStartSite(const Match &m1, const Match &m2){
+    // m1 must be to the left of m2
+    return m1.start_site < m2.start_site;
+}
 
 // static bool compareHaplotype1(const Match &m1, const Match &m2){
 //     return m1.hap1 < m2.hap1;
@@ -144,7 +144,7 @@ int nextInclEnd(int hap1, int hap2, int end, int max_gap, std::vector<int> &site
                 --m;
                 break;
             }
-            else if(m < last_marker){
+            else if(m <= last_marker){
                 first_match = m + 1;
             }
         }
@@ -157,7 +157,7 @@ int nextInclEnd(int hap1, int hap2, int end, int max_gap, std::vector<int> &site
 int extendInclEnd(int hap1, int hap2, int end, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, float min_seed, float min_extend, int min_extend_markers){
     int incl_end = end;
     int last_marker = site_mapping.size() - 1;
-    while (incl_end<last_marker && checkAllele(hap1, hap2, incl_end + 1, matches)) {
+    while (incl_end<=last_marker && checkAllele(hap1, hap2, incl_end + 1, matches)) {
         ++incl_end;
     }
     int prev_incl_end = incl_end;
@@ -186,7 +186,7 @@ std::string processSeed(int hap1, int hap2, int start, int incl_end, int max_gap
     if (start>=0) {
         incl_end = extendInclEnd(hap1, hap2, incl_end, max_gap, site_mapping, matches, gen_map, min_seed, min_extend, min_extend_markers);
         if ((gen_map.interpolated_cm[incl_end] - gen_map.interpolated_cm[start])>=min_output) {
-            out << hapToTskId(hap1) << "\t" << hapToTskId(hap2) << "\t" << "20" << "\t" << site_mapping[start] << "\t" << site_mapping[incl_end] << "\t" << roundToNDigits(gen_map.interpolated_cm[incl_end] - gen_map.interpolated_cm[start], 3) << "\n";
+            out << hapToTskId(hap1) << "\t" << hapToTskId(hap2) << "\t" << "20" << "\t" << site_mapping[start] << "\t" << site_mapping[incl_end + 1] << "\t" << roundToNDigits(gen_map.interpolated_cm[incl_end + 1] - gen_map.interpolated_cm[start], 3) << "\n";
             }
         return out.str();
         }

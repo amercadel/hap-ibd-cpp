@@ -23,8 +23,11 @@ int main(int argc, char **argv){
 	char *input_vcf = argv[1];
 	char *plink_rate_map = argv[2];
 	std::vector<int> site_mapping = getSiteMapping(input_vcf);
+	
 
 	rateMapData gen_map = readRateMap(plink_rate_map, site_mapping);
+	
+
 
 
 	pbwtInit();
@@ -37,7 +40,7 @@ int main(int argc, char **argv){
 
 	int original_stdout_fd = dup(fileno(stdout));
 
-	// // Redirect stdout to the file
+	// Redirect stdout to the file
 	freopen("intermediate_matches.txt", "w", stdout);
 	pbwtLongMatches(p, 0);
 
@@ -58,7 +61,7 @@ int main(int argc, char **argv){
 	while(std::getline(match_file, line)){
 		Match m(line);
 		float f1 = getGeneticPosition(gen_map.interpolated_cm, m.start_site);
-		float f2 = getGeneticPosition(gen_map.interpolated_cm, m.end_site - 1);
+		float f2 = getGeneticPosition(gen_map.interpolated_cm, m.end_site);
 		float len = f2 - f1;
 		if (len > min_extend){
 			m.len_cm = len;
@@ -81,7 +84,7 @@ int main(int argc, char **argv){
 	}
 	
 	std::ofstream output_file("output_matches.txt");
-	std::sort(filtered_matches.begin(), filtered_matches.end(), compareHaps);
+	std::sort(filtered_matches.begin(), filtered_matches.end(), compareStartSite);
 	for(size_t c = 0; c < filtered_matches.size(); c++){
 		Match m = filtered_matches[c];
 		std::string out;
@@ -92,7 +95,6 @@ int main(int argc, char **argv){
 	auto end = std::chrono::steady_clock::now();
     auto diff = end - start;
     std::cout << std::chrono::duration<double>(diff).count() << " seconds" << std::endl;
-
 	
 	
 	return 0;

@@ -30,7 +30,7 @@ int main(int argc, char **argv){
 
 
 
-	pbwtInit();
+	pbwtInit();g
 	PBWT* p = 0;
 	if(p){
 		pbwtDestroy(p);

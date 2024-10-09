@@ -43,7 +43,6 @@ struct rateMapData{
 };
 float rateMapData::interpolateBasePairToGenPos(int site){
     int idx = findVectorIndex(bp_vec, site);
-    int n = cm_vec.size();
     if (idx > 0){
         return cm_vec[idx];
     }

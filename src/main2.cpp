@@ -29,10 +29,11 @@ class hapIBDCpp{
 			this->min_output = min_output;
 			this->min_markers = min_markers;
 			this->min_mac = min_mac;
-			// this->runPBWT();
 			// this->getMatches();
 			// this->processSeeds();
-			// overlappingWindows(gen_map.cm_vec, this->min_seed, this->min_markers, 4);
+			std::vector<int> windows = overlappingWindows(this->gen_map.interpolated_cm, this->min_seed, this->min_markers, 4);
+			std::vector<std::string> intermediate_vcfs = splitVCFByPos(this->input_vcf, windows);
+			
 
 			
 		}
@@ -53,13 +54,13 @@ class hapIBDCpp{
 		std::vector<Match> filtered_matches;
 		rateMapData gen_map;
 		std::vector<int> site_mapping;
-		void runPBWT(){
+		void runPBWT(char* input_vcf){
 			pbwtInit();
 			PBWT* p = 0;
 			if(p){
 				pbwtDestroy(p);
 			}
-			p = pbwtReadVcfGT(this->input_vcf);
+			p = pbwtReadVcfGT(input_vcf);
 			int original_stdout_fd = dup(fileno(stdout));
 
 			// // Redirect stdout to the file
@@ -124,6 +125,7 @@ int main(int argc, char **argv){
 	auto start = std::chrono::steady_clock::now();
 	char *input_vcf = argv[1];
 	char *plink_rate_map = argv[2];
+	
 	hapIBDCpp run(input_vcf, plink_rate_map);
 	auto end = std::chrono::steady_clock::now();
     auto diff = end - start;

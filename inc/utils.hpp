@@ -57,7 +57,7 @@ int findInsertionIndex(std::vector<T> &vec, int from, int to, T val){
 }
 
 
-void overlappingWindows(std::vector<float> cm, float min_seed, int min_markers, int n_threads){
+std::vector<int> overlappingWindows(std::vector<float> cm, float min_seed, int min_markers, int n_threads){
     std::vector<int> starts;
     std::vector<int> ends;
     float L = cm.back() - cm.front();
@@ -72,11 +72,13 @@ void overlappingWindows(std::vector<float> cm, float min_seed, int min_markers, 
         start_gen_pos += dist;
         i++;
     }
+    std::vector<int> window_vec;
     for(size_t i = 0; i < starts.size(); i++){
+        window_vec.push_back(starts[i]);
+        window_vec.push_back(ends[i]);
         std::cout << starts[i] << " " << ends[i] << std::endl;
     }
-
-    
-    
-
+    return window_vec;
 }
+
+

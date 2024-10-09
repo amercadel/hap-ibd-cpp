@@ -30,7 +30,7 @@ int main(int argc, char **argv){
 
 
 
-	pbwtInit();g
+	pbwtInit();
 	PBWT* p = 0;
 	if(p){
 		pbwtDestroy(p);
@@ -38,19 +38,13 @@ int main(int argc, char **argv){
 	std::cout << "running pbwt\n";
 	p = pbwtReadVcfGT(input_vcf);
 
-	int original_stdout_fd = dup(fileno(stdout));
-
-	// Redirect stdout to the file
-	freopen("intermediate_matches.txt", "w", stdout);
+	
 	pbwtLongMatches(p, 0);
 
-	// Restore the original stdout
-	fflush(stdout);
-	dup2(original_stdout_fd, fileno(stdout));
-	close(original_stdout_fd);
+
 	float min_extend = 1.0f;
     std::ifstream match_file;
-	match_file.open("intermediate_matches.txt");
+	match_file.open("intermediate_matches_native.txt");
 	std::string line;
 	std::vector<Match> matches;
 	if (!match_file.is_open()) {

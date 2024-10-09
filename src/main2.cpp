@@ -29,10 +29,22 @@ class hapIBDCpp{
 			this->min_output = min_output;
 			this->min_markers = min_markers;
 			this->min_mac = min_mac;
-			// this->getMatches();
-			// this->processSeeds();
-			std::vector<int> windows = overlappingWindows(this->gen_map.interpolated_cm, this->min_seed, this->min_markers, 4);
-			std::vector<std::string> intermediate_vcfs = splitVCFByPos(this->input_vcf, windows);
+			
+			std::vector<std::pair<int, int>> windows = overlappingWindows(this->gen_map.interpolated_cm, this->min_seed, this->min_markers, 4);
+			std::vector<char*> intermediate_files = splitVCFByPos(this->input_vcf, windows);
+			int original_stdout_fd = dup(fileno(stdout));
+
+			// // Redirect stdout to the file
+			freopen(this->match_file, "w", stdout);
+			for(size_t i = 0; i < intermediate_files.size(); i++){
+				runPBWT(intermediate_files[i]);
+			}
+			// Restore the original stdout
+			fflush(stdout);
+			dup2(original_stdout_fd, fileno(stdout));
+			close(original_stdout_fd);
+			this->getMatches();
+			this->processSeeds();
 			
 
 			
@@ -61,16 +73,9 @@ class hapIBDCpp{
 				pbwtDestroy(p);
 			}
 			p = pbwtReadVcfGT(input_vcf);
-			int original_stdout_fd = dup(fileno(stdout));
-
-			// // Redirect stdout to the file
-			freopen(this->match_file, "w", stdout);
 			pbwtLongMatches(p, 0);
 
-			// Restore the original stdout
-			fflush(stdout);
-			dup2(original_stdout_fd, fileno(stdout));
-			close(original_stdout_fd);
+			
 
 		}
 		void getMatches(){

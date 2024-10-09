@@ -1,4 +1,6 @@
+#pragma once
 #include <vector>
+#include <utility>
 
 
 template<typename T>
@@ -57,9 +59,8 @@ int findInsertionIndex(std::vector<T> &vec, int from, int to, T val){
 }
 
 
-std::vector<int> overlappingWindows(std::vector<float> cm, float min_seed, int min_markers, int n_threads){
-    std::vector<int> starts;
-    std::vector<int> ends;
+std::vector<std::pair<int, int>> overlappingWindows(std::vector<float> cm, float min_seed, int min_markers, int n_threads){
+    std::vector<std::pair<int, int>> window_vec;
     float L = cm.back() - cm.front();
     float window_size = ((L - min_seed) / n_threads + min_seed);
     float dist = (L - min_seed) / n_threads;
@@ -67,16 +68,11 @@ std::vector<int> overlappingWindows(std::vector<float> cm, float min_seed, int m
     int i = 0;
     while(i < n_threads){
         float end_gen_pos = start_gen_pos + window_size;
-        starts.push_back(findInsertionIndex(cm, start_gen_pos));
-        ends.push_back(findInsertionIndex(cm, end_gen_pos));
+        int start = findInsertionIndex(cm, start_gen_pos);
+        int end = findInsertionIndex(cm, end_gen_pos);
         start_gen_pos += dist;
+        window_vec.push_back(std::pair<int, int>(start, end));
         i++;
-    }
-    std::vector<int> window_vec;
-    for(size_t i = 0; i < starts.size(); i++){
-        window_vec.push_back(starts[i]);
-        window_vec.push_back(ends[i]);
-        std::cout << starts[i] << " " << ends[i] << std::endl;
     }
     return window_vec;
 }

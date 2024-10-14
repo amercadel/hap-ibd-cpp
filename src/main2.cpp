@@ -32,19 +32,20 @@ class hapIBDCpp{
 			
 			std::vector<std::pair<int, int>> windows = overlappingWindows(this->gen_map.interpolated_cm, this->min_seed, this->min_markers, 4);
 			std::vector<char*> intermediate_files = splitVCFByPos(this->input_vcf, windows);
-			int original_stdout_fd = dup(fileno(stdout));
 
-			// // Redirect stdout to the file
-			freopen(this->match_file, "w", stdout);
+			
 			for(size_t i = 0; i < intermediate_files.size(); i++){
-				runPBWT(intermediate_files[i]);
+				runPBWT(intermediate_files[i], i);
 			}
-			// Restore the original stdout
-			fflush(stdout);
-			dup2(original_stdout_fd, fileno(stdout));
-			close(original_stdout_fd);
+			// std::cout << "running pbwt\n";
+			// this->runPBWT(this->input_vcf);
+			std::cout << "fetching matches" << std::endl;
 			this->getMatches();
+			std::cout << "processing seed\n";
 			this->processSeeds();
+			
+			
+			
 			
 
 			
@@ -66,14 +67,14 @@ class hapIBDCpp{
 		std::vector<Match> filtered_matches;
 		rateMapData gen_map;
 		std::vector<int> site_mapping;
-		void runPBWT(char* input_vcf){
+		void runPBWT(char* input_vcf, int index){
 			pbwtInit();
 			PBWT* p = 0;
 			if(p){
 				pbwtDestroy(p);
 			}
 			p = pbwtReadVcfGT(input_vcf);
-			pbwtLongMatches(p, 0);
+			pbwtLongMatches(p, 0, index);
 
 			
 
@@ -81,21 +82,27 @@ class hapIBDCpp{
 		void getMatches(){
 			std::vector<Match> *matches = new std::vector<Match>;
 			std::ifstream mf;
-			mf.open(match_file);
+			mf.open(this->match_file);
 			std::string line;
-			if(!mf.is_open()){
-				std::cerr << "Could not open file" << std::endl;
-			}
+			
 			while(std::getline(mf, line)){
-			Match m(line);
-			float f1 = getGeneticPosition(gen_map.interpolated_cm, m.start_site);
-			float f2 = getGeneticPosition(gen_map.interpolated_cm, m.end_site - 1);
-			float len = f2 - f1;
-			if (len > this->min_extend){
-				m.len_cm = len;
-				matches->push_back(m);
-				}
+				Match m(line);
+				
+				
+				// std::cout << m.start_site << " " << m.end_site << std::endl;
+				float f1 = getGeneticPosition(gen_map.interpolated_cm, m.start_site);
+				float f2 = getGeneticPosition(gen_map.interpolated_cm, m.end_site - 1);
+				
+
+				float len = f2 - f1;
+				if (len >= this->min_extend){
+					m.len_cm = len;
+					
+					matches->push_back(m);
+					}
 			}
+			mf.close();
+			std::cout << "got matches\n";
 			size_t i = 0;
 			while(i < matches->size() - 1){
 				if((*matches)[i] == (*matches)[i+1]){

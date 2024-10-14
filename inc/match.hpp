@@ -24,6 +24,9 @@ class Match{
         bool visited = false;
         Match(std::string input_str){
             std::vector<std::string> split_str = split(input_str, '\t');
+            if (split_str.size() != 6){
+                std::cerr << input_str << "\n" << "has a splitting issue" << std::endl;
+            };
             this->hap1 = std::min(stoi(split_str[1]), stoi(split_str[2]));
             this->hap2 = std::max(stoi(split_str[1]), stoi(split_str[2]));
             this->start_site = stoi(split_str[3]);

@@ -34,5 +34,5 @@ my_includes = include_directories('inc')
 
 
 
-executable('hap-ibd-cpp', ['src/main.cpp'], dependencies: [htslib_dep, pbwt_dep], include_directories: [my_includes])
+executable('hap-ibd-cpp', ['src/main2.cpp'], dependencies: [htslib_dep, pbwt_dep], include_directories: [my_includes])
 

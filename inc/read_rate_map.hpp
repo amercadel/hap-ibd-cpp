@@ -5,11 +5,18 @@
 #include <cmath>
 #include <unordered_map>
 #include <algorithm>
+#include <cassert>
 #include "utils.hpp"
 
 float getGeneticPosition(std::vector<float> &interpolated_cm, int site_idx){
-	float genetic_position = interpolated_cm[site_idx];
-	return genetic_position;
+    assert(site_idx < interpolated_cm.size());
+    if(site_idx < interpolated_cm.size()){
+        return interpolated_cm[site_idx];
+    }
+    else{
+        std::cerr << "Site outside of interolated map\n";
+    }
+	
 }
 
 std::vector<std::string> split(std::string &line, char delim){

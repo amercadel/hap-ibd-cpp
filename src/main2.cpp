@@ -4,10 +4,12 @@
 #include <vector>
 #include <algorithm>
 #include <chrono>
+#include <thread>
 #include <cstdio>
 #include <unistd.h>
 #include "match.hpp"
 #include "vcf.hpp"
+#include "omp.h"
 extern "C"
 {
 #include "pbwt.h"
@@ -16,12 +18,12 @@ extern "C"
 
 class hapIBDCpp{
 	public:
-		hapIBDCpp(char* input_vcf, char* plink_rate_map, char* output_file_path = "output.txt", float min_seed = 2.0, int max_gap = 100, 
+		hapIBDCpp(char* input_vcf, char* plink_rate_map, const char* output_file_path = "output.txt", float min_seed = 2.0, int max_gap = 100, 
 					float min_extend = 1.0, float min_output = 2.0, int min_markers = 100, int min_mac = 2){
 			this->input_vcf = input_vcf;
 			this->plink_rate_map = plink_rate_map;
 			this->output_file_path = output_file_path;
-			this->site_mapping = getSiteMapping(input_vcf);
+			getSiteMappingAndGenotypes(input_vcf, this->genotype_array, this->site_mapping);
 			this->gen_map = readRateMap(plink_rate_map, site_mapping);
 			this->min_seed = min_seed;
 			this->max_gap = max_gap;
@@ -30,17 +32,18 @@ class hapIBDCpp{
 			this->min_markers = min_markers;
 			this->min_mac = min_mac;
 			
-			std::vector<std::pair<int, int>> windows = overlappingWindows(this->gen_map.interpolated_cm, this->min_seed, this->min_markers, 4);
-			std::vector<char*> intermediate_files = splitVCFByPos(this->input_vcf, windows);
+			// std::vector<std::pair<int, int>> windows = overlappingWindows(this->gen_map.interpolated_cm, this->min_seed, this->min_markers, 4);
+			// std::vector<char*> intermediate_files = splitVCFByPos(this->input_vcf, windows);
 
 			
-			for(size_t i = 0; i < intermediate_files.size(); i++){
-				runPBWT(intermediate_files[i], i);
-			}
-			// std::cout << "running pbwt\n";
-			// this->runPBWT(this->input_vcf);
+			// #pragma omp parallel for
+			// for(int i = 0; i < intermediate_files.size(); i++){
+			// 	runPBWT(intermediate_files[i], i);
+			// }
+			runPBWT(this->input_vcf, 0);
+			
 			std::cout << "fetching matches" << std::endl;
-			this->getMatches();
+			this->getMatches("intermediate_matches_0.txt");
 			std::cout << "processing seed\n";
 			this->processSeeds();
 			
@@ -56,8 +59,7 @@ class hapIBDCpp{
 	private:
 		char* input_vcf;
 		char* plink_rate_map;
-		char* output_file_path;
-		char* match_file = "intermediate_matches.txt";
+		const char* output_file_path;
 		float min_seed;
 		int max_gap;
 		float min_extend;
@@ -67,6 +69,7 @@ class hapIBDCpp{
 		std::vector<Match> filtered_matches;
 		rateMapData gen_map;
 		std::vector<int> site_mapping;
+		std::vector<std::vector<int>> genotype_array;
 		void runPBWT(char* input_vcf, int index){
 			pbwtInit();
 			PBWT* p = 0;
@@ -79,21 +82,16 @@ class hapIBDCpp{
 			
 
 		}
-		void getMatches(){
+		void getMatches(char* match_file){
 			std::vector<Match> *matches = new std::vector<Match>;
 			std::ifstream mf;
-			mf.open(this->match_file);
+			mf.open(match_file);
 			std::string line;
 			
 			while(std::getline(mf, line)){
 				Match m(line);
-				
-				
-				// std::cout << m.start_site << " " << m.end_site << std::endl;
 				float f1 = getGeneticPosition(gen_map.interpolated_cm, m.start_site);
 				float f2 = getGeneticPosition(gen_map.interpolated_cm, m.end_site - 1);
-				
-
 				float len = f2 - f1;
 				if (len >= this->min_extend){
 					m.len_cm = len;
@@ -111,18 +109,25 @@ class hapIBDCpp{
 				}
 				else{
 					this->filtered_matches.push_back((*matches)[i]);
+					
 					i++;
 				}
+
 			}
-			std::sort(filtered_matches.begin(), filtered_matches.end(), compareHaps);
+			std::sort(this->filtered_matches.begin(), this->filtered_matches.end(), compareMatch);
+			// for(int i = 0; i < this->filtered_matches.size(); i++){
+			// 	this->filtered_matches[i].display();
+			// }
+			
 			delete matches;
+
 		}
 		void processSeeds(){
 			std::ofstream output_file(this->output_file_path);
 			for(size_t c = 0; c < filtered_matches.size(); c++){
 				Match m = filtered_matches[c];
 				std::string out;
-				out = processSeed(m.hap1, m.hap2, m.start_site, m.end_site, this->max_gap, this->site_mapping, this->filtered_matches, this->gen_map, this->min_seed, this->min_extend, this->min_markers, this->min_output);
+				out = processSeed(m.hap1, m.hap2, m.start_site, m.end_site, this->max_gap, this->site_mapping, this->filtered_matches, this->gen_map, this->min_seed, this->min_extend, this->min_markers, this->min_output, this->genotype_array);
 				output_file << out;
 			}
 			output_file.close();
@@ -139,8 +144,11 @@ int main(int argc, char **argv){
 	char *plink_rate_map = argv[2];
 	
 	hapIBDCpp run(input_vcf, plink_rate_map);
+	
+	
 	auto end = std::chrono::steady_clock::now();
     auto diff = end - start;
+	
     std::cout << std::chrono::duration<double>(diff).count() << " seconds" << std::endl;
 
 	

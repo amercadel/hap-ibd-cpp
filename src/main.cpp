@@ -14,3 +14,4 @@ extern "C"
 #include "pbwt.h"
 }
 
+int main()

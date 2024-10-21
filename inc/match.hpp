@@ -7,8 +7,7 @@
 #include <cmath>
 #include <string>
 #include "read_rate_map.hpp"
-
-
+ 
 
 
 
@@ -24,9 +23,6 @@ class Match{
         bool visited = false;
         Match(std::string &input_str){
             std::vector<std::string> split_str = split(input_str, '\t');
-            if (split_str.size() != 6){
-                std::cerr << input_str << "\n" << "has a splitting issue" << std::endl;
-            };
             this->hap1 = std::min(stoi(split_str[1]), stoi(split_str[2]));
             this->hap2 = std::max(stoi(split_str[1]), stoi(split_str[2]));
             this->start_site = stoi(split_str[3]);
@@ -66,10 +62,10 @@ static bool compareMatch(const Match &m1, const Match &m2) {
     return m1.end_site < m2.end_site;
 }
 
-static bool compareStartSite(const Match &m1, const Match &m2){
-    // m1 must be to the left of m2
-    return m1.start_site < m2.start_site;
-}
+// static bool compareStartSite(const Match &m1, const Match &m2){
+//     // m1 must be to the left of m2
+//     return m1.start_site < m2.start_site;
+// }
 
 // static bool compareHaplotype1(const Match &m1, const Match &m2){
 //     return m1.hap1 < m2.hap1;
@@ -79,12 +75,12 @@ static bool compareStartSite(const Match &m1, const Match &m2){
 //     return m1.hap2 < m2.hap2;
 // }
 
-static bool compareHaps(const Match &m1, const Match &m2) {
-    if (m1.hap1 == m2.hap1) {
-        return m1.hap2 < m2.hap2;
-    }
-    return m1.hap1 < m2.hap1;
-}
+// static bool compareHaps(const Match &m1, const Match &m2) {
+//     if (m1.hap1 == m2.hap1) {
+//         return m1.hap2 < m2.hap2;
+//     }
+//     return m1.hap1 < m2.hap1;
+// }
 
 
 // bool checkAllele(int hap1, int hap2, int site, std::vector<Match> &matches){
@@ -109,6 +105,7 @@ int nextStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site
     }
     int m = start - 1;
     int first_mismatch_pos = site_mapping[m];
+
     int first_match = start - 2;
     while(m > 0){
         --m;
@@ -125,12 +122,12 @@ int nextStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site
         }
     }
     float len = gen_map.interpolated_cm[first_match] - gen_map.interpolated_cm[m];
-    if (len >= min_seed && ((first_match - m) >= min_seed_markers - 1)){
+    if (len >= min_seed && ((first_match - m) >= min_seed_markers)){
         return -1;
     }
     else{
-        
-        return (len < min_extend || ((first_match - m) < min_extend_markers - 1)) ? start : m;
+        int ret = (len < min_extend || ((first_match - m) < min_extend_markers - 1)) ? start : m;
+        return ret;
     }
 }
 
@@ -174,9 +171,6 @@ int nextInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> 
 
 int extendInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, float min_seed, float min_extend, int min_extend_markers, std::vector<std::vector<int>> &genotype_array){
     int last_marker = site_mapping.size() - 1;
-    // if(incl_end == last_marker){
-    //     return incl_end;
-    // }
     while (incl_end<last_marker && (genotype_array[incl_end + 1][hap1] == genotype_array[incl_end + 1][hap2])) {
         ++incl_end;
     }
@@ -203,7 +197,7 @@ std::string processSeed(int hap1, int hap2, int start, int incl_end, int max_gap
     std::stringstream out;
     
     start = extendStart(hap1, hap2, start, max_gap, site_mapping, matches, gen_map, min_seed, min_extend, min_seed_markers, min_extend_markers, genotype_array);
-    
+    // std::cout << hap1 << "\n" << hap2 << "\n" << start << "\n" << "-----------" << std::endl;
     if (start>=0) {
         incl_end = extendInclEnd(hap1, hap2, incl_end, max_gap, site_mapping, matches, gen_map, min_seed, min_extend, min_extend_markers, genotype_array);
         

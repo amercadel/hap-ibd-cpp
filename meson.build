@@ -1,4 +1,4 @@
-project('hap-ibd-cpp', ['c', 'cpp'], default_options: ['c_std=c99', 'cpp_std=c++17', 'warning_level=0'])
+project('test-hap-ibd-cpp', ['c', 'cpp'], default_options: ['c_std=c99', 'cpp_std=c++17', 'warning_level=0'])
 
 zdep = dependency('zlib', version : '>=1.2.8')
 htslib_dep = dependency('htslib', required: true)
@@ -32,7 +32,4 @@ pbwt_dep = declare_dependency(include_directories: pbwt_inc,
 my_includes = include_directories('inc')
 
 
-
-
-executable('hap-ibd-cpp', ['src/main2.cpp'], dependencies: [htslib_dep, pbwt_dep], include_directories: [my_includes])
-
+executable('test-hap-ibd-cpp', ['src/main2.cpp'], dependencies: [htslib_dep, pbwt_dep], include_directories: [my_includes])

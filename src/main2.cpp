@@ -7,9 +7,10 @@
 #include <thread>
 #include <cstdio>
 #include <unistd.h>
+#include <unordered_set>
 #include "match.hpp"
 #include "vcf.hpp"
-#include "omp.h"
+// #include "omp.h"
 extern "C"
 {
 #include "pbwt.h"
@@ -95,7 +96,7 @@ class hapIBDCpp{
 				float f1 = getGeneticPosition(gen_map.interpolated_cm, m.start_site);
 				float f2 = getGeneticPosition(gen_map.interpolated_cm, m.end_site - 1);
 				float len = f2 - f1;
-				if (len >= this->min_extend){
+				if (len >= this->min_seed){
 					m.len_cm = len;
 					
 					matches->push_back(m);
@@ -130,9 +131,13 @@ class hapIBDCpp{
 			for(size_t c = 0; c < filtered_matches.size(); c++){
 				
 				Match m = filtered_matches[c];
+				if ((m.hap1 == 27) && (m.hap2 == 104)){
+					m.display();
+				}
 				
 				std::string out;
 				out = processSeed(m.hap1, m.hap2, m.start_site, m.end_site, this->max_gap, this->site_mapping, this->filtered_matches, this->gen_map, this->min_seed, this->min_extend, this->min_markers, this->min_markers_extend, this->min_output, this->genotype_array);
+				
 				if(!out.empty()){
 					output_file << out;
 					}

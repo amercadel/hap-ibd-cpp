@@ -7,7 +7,9 @@
                 "${workspaceFolder}/pbwt",
                 "${workspaceFolder}/htslib",
                 "${workspaceFolder}/htslib/htslib",
-                "${workspaceFolder}/inc"
+                "${workspaceFolder}/inc",
+                "${workspaceFolder}/htslib",
+                "${workspaceFolder}/htslib"
             ],
             "defines": [],
             "macFrameworkPath": [

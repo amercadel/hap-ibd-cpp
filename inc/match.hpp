@@ -30,7 +30,7 @@ class Match{
             this->hap1 = std::min(stoi(split_str[1]), stoi(split_str[2]));
             this->hap2 = std::max(stoi(split_str[1]), stoi(split_str[2]));
             this->start_site = stoi(split_str[3]);
-            this->end_site = stoi(split_str[4]);
+            this->end_site = stoi(split_str[4]) - 1;
             this->n_sites = stoi(split_str[5]);
         }
         Match(int hap1, int hap2, int start_site, int end_site){
@@ -103,7 +103,7 @@ static bool compareHaps(const Match &m1, const Match &m2) {
 // }
 
 
-int nextStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, float min_seed, float min_extend, int min_extend_markers, std::vector<std::vector<int>> &genotype_array){
+int nextStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, float min_seed, float min_extend, int min_seed_markers, int min_extend_markers, std::vector<std::vector<int>> &genotype_array){
     if (start < 2 || max_gap < 0){
         return start;
     }
@@ -125,29 +125,29 @@ int nextStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site
         }
     }
     float len = gen_map.interpolated_cm[first_match] - gen_map.interpolated_cm[m];
-    if (len >= min_seed && (first_match - m) >= min_extend_markers){
+    if (len >= min_seed && ((first_match - m) >= min_seed_markers - 1)){
         return -1;
     }
     else{
         
-        return (len < min_extend || (first_match - m) < min_extend_markers) ? start : m;
+        return (len < min_extend || ((first_match - m) < min_extend_markers - 1)) ? start : m;
     }
 }
 
 
-int extendStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, float min_seed, float min_extend, int min_extend_markers, std::vector<std::vector<int>> &genotype_array){
+int extendStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, float min_seed, float min_extend, int min_seed_markers, int min_extend_markers, std::vector<std::vector<int>> &genotype_array){
     int prev_start = start;
-    int next_start = nextStart(hap1, hap2, prev_start, max_gap, site_mapping, matches, gen_map, min_seed, min_extend, min_extend_markers, genotype_array);
-    while (next_start>=0 && next_start < prev_start) {
+    int next_start = nextStart(hap1, hap2, prev_start, max_gap, site_mapping, matches, gen_map, min_seed, min_extend, min_seed_markers, min_extend_markers, genotype_array);
+    while (next_start>=0 && (next_start < prev_start)) {
         prev_start = next_start;
-        next_start = nextStart(hap1, hap2, prev_start, max_gap, site_mapping, matches, gen_map, min_seed, min_extend, min_extend_markers, genotype_array);
+        next_start = nextStart(hap1, hap2, prev_start, max_gap, site_mapping, matches, gen_map, min_seed, min_extend, min_seed_markers, min_extend_markers, genotype_array);
     }
     return next_start;
 }
 
 int nextInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, float min_seed, float min_extend, int min_extend_markers, std::vector<std::vector<int>> &genotype_array){
-    int last_marker = site_mapping.size() - 2;
-    if (incl_end>(last_marker-2) || max_gap<0) {
+    int last_marker = site_mapping.size() - 1;
+    if (incl_end>(last_marker - 1) || max_gap<0) {
         return incl_end;
     }
     int m = incl_end + 1;
@@ -169,12 +169,14 @@ int nextInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> 
 
     }
     float len = (gen_map.interpolated_cm[m] - gen_map.interpolated_cm[first_match]);
-    return (len<min_extend || (m-first_match)<min_extend_markers) ? incl_end : m;
+    return (len<min_extend || (m-first_match)<min_extend_markers - 1) ? incl_end : m;
 }
 
 int extendInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, float min_seed, float min_extend, int min_extend_markers, std::vector<std::vector<int>> &genotype_array){
-    int last_marker = site_mapping.size() - 2;
-    std::cout << incl_end << std::endl;
+    int last_marker = site_mapping.size() - 1;
+    // if(incl_end == last_marker){
+    //     return incl_end;
+    // }
     while (incl_end<last_marker && (genotype_array[incl_end + 1][hap1] == genotype_array[incl_end + 1][hap2])) {
         ++incl_end;
     }
@@ -197,23 +199,23 @@ std::string hapToTskId(int hap){
 }
 
 
-std::string processSeed(int hap1, int hap2, int start, int incl_end, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, float min_seed, float min_extend, int min_extend_markers, float min_output, std::vector<std::vector<int>> &genotype_array){
+std::string processSeed(int hap1, int hap2, int start, int incl_end, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, float min_seed, float min_extend, int min_seed_markers, int min_extend_markers, float min_output, std::vector<std::vector<int>> &genotype_array){
     std::stringstream out;
-    // std::cout << "--------------\n";
-    // std::cout << hap1 << " " << hap2 << std::endl;
-    // std::cout << "initial start: " << start << std::endl;
-    // std::cout << "initial end: " << incl_end << std::endl;
-    start = extendStart(hap1, hap2, start, max_gap, site_mapping, matches, gen_map, min_seed, min_extend, min_extend_markers, genotype_array);
-    // std::cout << "new start " << start << std::endl;
+    
+    start = extendStart(hap1, hap2, start, max_gap, site_mapping, matches, gen_map, min_seed, min_extend, min_seed_markers, min_extend_markers, genotype_array);
+    
     if (start>=0) {
         incl_end = extendInclEnd(hap1, hap2, incl_end, max_gap, site_mapping, matches, gen_map, min_seed, min_extend, min_extend_markers, genotype_array);
-        // std::cout << "new end: " << incl_end << std::endl;
+        
         if ((gen_map.interpolated_cm[incl_end] - gen_map.interpolated_cm[start])>=min_output) {
-            out << hapToTskId(hap1) << "\t" << hapToTskId(hap2) << "\t" << "20" << "\t" << site_mapping[start] << "\t" << site_mapping[incl_end + 1] << "\t" << roundToNDigits(gen_map.interpolated_cm[incl_end + 1] - gen_map.interpolated_cm[start], 3) << "\n";
+            out << hapToTskId(hap1) << "\t" << hapToTskId(hap2) << "\t" << "20" << "\t" << site_mapping[start] << "\t" << site_mapping[incl_end] << "\t" << roundToNDigits(gen_map.interpolated_cm[incl_end] - gen_map.interpolated_cm[start], 3) << "\n";
             }
         return out.str();
         }
+    else{
+        return "";
     }
+}
 
 
 

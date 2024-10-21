@@ -14,7 +14,7 @@ extern "C"
 {
 #include "pbwt.h"
 }
-
+// need to fix issue with min markers extend vs min markers seed. first I'd like to clean everything up
 
 class hapIBDCpp{
 	public:
@@ -31,6 +31,7 @@ class hapIBDCpp{
 			this->min_output = min_output;
 			this->min_markers = min_markers;
 			this->min_mac = min_mac;
+			this->min_markers_extend = floor((this->min_extend/this->min_seed) * this->min_markers);
 			
 			// std::vector<std::pair<int, int>> windows = overlappingWindows(this->gen_map.interpolated_cm, this->min_seed, this->min_markers, 4);
 			// std::vector<char*> intermediate_files = splitVCFByPos(this->input_vcf, windows);
@@ -66,6 +67,7 @@ class hapIBDCpp{
 		float min_output;
 		int min_markers;
 		int min_mac;
+		int min_markers_extend;
 		std::vector<Match> filtered_matches;
 		rateMapData gen_map;
 		std::vector<int> site_mapping;
@@ -100,6 +102,7 @@ class hapIBDCpp{
 					}
 			}
 			mf.close();
+			std::sort(matches->begin(), matches->end(), compareMatch);
 			std::cout << "got matches\n";
 			size_t i = 0;
 			while(i < matches->size() - 1){
@@ -114,7 +117,7 @@ class hapIBDCpp{
 				}
 
 			}
-			std::sort(this->filtered_matches.begin(), this->filtered_matches.end(), compareMatch);
+			
 			// for(int i = 0; i < this->filtered_matches.size(); i++){
 			// 	this->filtered_matches[i].display();
 			// }
@@ -125,11 +128,16 @@ class hapIBDCpp{
 		void processSeeds(){
 			std::ofstream output_file(this->output_file_path);
 			for(size_t c = 0; c < filtered_matches.size(); c++){
+				
 				Match m = filtered_matches[c];
+				
 				std::string out;
-				out = processSeed(m.hap1, m.hap2, m.start_site, m.end_site, this->max_gap, this->site_mapping, this->filtered_matches, this->gen_map, this->min_seed, this->min_extend, this->min_markers, this->min_output, this->genotype_array);
-				output_file << out;
+				out = processSeed(m.hap1, m.hap2, m.start_site, m.end_site, this->max_gap, this->site_mapping, this->filtered_matches, this->gen_map, this->min_seed, this->min_extend, this->min_markers, this->min_markers_extend, this->min_output, this->genotype_array);
+				if(!out.empty()){
+					output_file << out;
+					}
 			}
+			
 			output_file.close();
 
 

@@ -107,12 +107,15 @@ int nextStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site
     int first_mismatch_pos = site_mapping[m];
 
     int first_match = start - 2;
+    std::cout << hap1 << "\t" << hap2 << "\t" << start << std::endl;
     while(m > 0){
         --m;
         int a1 = genotype_array[m][hap1];
         int a2 = genotype_array[m][hap2];
         if(a1!=a2){
+            std::cout << site_mapping[m] <<  " gap: " << (first_mismatch_pos - site_mapping[m]) << std::endl;
             if((first_mismatch_pos - site_mapping[m]) > max_gap){
+                
                 ++m;
                 break;
             }
@@ -121,12 +124,17 @@ int nextStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site
             }
         }
     }
+    
     float len = gen_map.interpolated_cm[first_match] - gen_map.interpolated_cm[m];
-    if (len >= min_seed && ((first_match - m) >= min_seed_markers)){
+    if (len >= min_seed && ((first_match - m) >= min_seed_markers - 1)){
+        std::cout << -1 << std::endl;
+        std::cout << "--------------\n";
         return -1;
     }
     else{
         int ret = (len < min_extend || ((first_match - m) < min_extend_markers - 1)) ? start : m;
+        std::cout << ret << std::endl;
+        std::cout << "--------------\n";
         return ret;
     }
 }
@@ -144,7 +152,7 @@ int extendStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &si
 
 int nextInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, float min_seed, float min_extend, int min_extend_markers, std::vector<std::vector<int>> &genotype_array){
     int last_marker = site_mapping.size() - 1;
-    if (incl_end>(last_marker - 1) || max_gap<0) {
+    if ((incl_end>(last_marker - 2)) || (max_gap < 0)) {
         return incl_end;
     }
     int m = incl_end + 1;
@@ -159,14 +167,14 @@ int nextInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> 
                 --m;
                 break;
             }
-            else if(m <= last_marker){
+            else if(m < last_marker){
                 first_match = m + 1;
             }
         }
 
     }
     float len = (gen_map.interpolated_cm[m] - gen_map.interpolated_cm[first_match]);
-    return (len<min_extend || (m-first_match)<min_extend_markers - 1) ? incl_end : m;
+    return (len<min_extend || (m-first_match)<(min_extend_markers - 1)) ? incl_end : m;
 }
 
 int extendInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, float min_seed, float min_extend, int min_extend_markers, std::vector<std::vector<int>> &genotype_array){

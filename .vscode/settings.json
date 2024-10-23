@@ -68,6 +68,12 @@
         "condition_variable": "cpp",
         "csignal": "cpp",
         "shared_mutex": "cpp",
-        "cassert": "cpp"
+        "cassert": "cpp",
+        "deque": "cpp",
+        "execution": "cpp",
+        "memory": "cpp",
+        "print": "cpp",
+        "queue": "cpp",
+        "stack": "cpp"
     }
 }

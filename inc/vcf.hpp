@@ -74,7 +74,7 @@ std::vector<char*> splitVCFByPos(char* input_vcf, std::vector<std::pair<int, int
         std::strcpy(output_file_name_cstr, output_file_name.c_str());
         file_names.push_back(output_file_name_cstr);
         output_files[i] = hts_open(output_file_name_cstr, "w");  // Open output file
-        bcf_hdr_write(output_files[i], hdr);
+        int ret = bcf_hdr_write(output_files[i], hdr);
     }
     while(bcf_read(input, hdr, rec) == 0){
         for(size_t c = 0; c < output_files.size(); c++){ // iterate through output files

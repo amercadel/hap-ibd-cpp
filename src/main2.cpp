@@ -43,10 +43,11 @@ class hapIBDCpp{
 			// for(int i = 0; i < intermediate_files.size(); i++){
 			// 	runPBWT(intermediate_files[i], i);
 			// }
-			// runPBWT(this->input_vcf, 0);
+			std::cout << "running pbwt\n";
+			runPBWT(this->input_vcf, 0);
 			
-			// std::cout << "fetching matches" << std::endl;
-			this->getMatches("hap_matches.txt");
+			std::cout << "fetching matches" << std::endl;
+			this->getMatches("intermediate_matches_0.txt");
 			std::cout << "processing seeds\n";
  			this->processSeeds();
 			// for(int i = 0; i < genotype_array.size(); i++){
@@ -90,7 +91,7 @@ class hapIBDCpp{
 				pbwtDestroy(p);
 			}
 			p = pbwtReadVcfGT(input_vcf);
-			pbwtLongMatches(p, 0, index);
+			pbwtLongMatches(p, this->min_markers, index);
 
 			
 

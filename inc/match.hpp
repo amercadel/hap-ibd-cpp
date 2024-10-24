@@ -107,15 +107,14 @@ int nextStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site
     int first_mismatch_pos = site_mapping[m];
 
     int first_match = start - 2;
-    std::cout << hap1 << "\t" << hap2 << "\t" << start << std::endl;
     while(m > 0){
         --m;
         int a1 = genotype_array[m][hap1];
         int a2 = genotype_array[m][hap2];
+        std::cout << m << " " << a1 << " " << a2 << std::endl;
         if(a1!=a2){
-            std::cout << site_mapping[m] <<  " gap: " << (first_mismatch_pos - site_mapping[m]) << std::endl;
+            
             if((first_mismatch_pos - site_mapping[m]) > max_gap){
-                
                 ++m;
                 break;
             }
@@ -127,14 +126,11 @@ int nextStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site
     
     float len = gen_map.interpolated_cm[first_match] - gen_map.interpolated_cm[m];
     if (len >= min_seed && ((first_match - m) >= min_seed_markers - 1)){
-        std::cout << -1 << std::endl;
-        std::cout << "--------------\n";
+        std::cout << len << std::endl;
         return -1;
     }
     else{
         int ret = (len < min_extend || ((first_match - m) < min_extend_markers - 1)) ? start : m;
-        std::cout << ret << std::endl;
-        std::cout << "--------------\n";
         return ret;
     }
 }
@@ -205,10 +201,10 @@ std::string processSeed(int hap1, int hap2, int start, int incl_end, int max_gap
     std::stringstream out;
     
     start = extendStart(hap1, hap2, start, max_gap, site_mapping, matches, gen_map, min_seed, min_extend, min_seed_markers, min_extend_markers, genotype_array);
-    // std::cout << hap1 << "\n" << hap2 << "\n" << start << "\n" << "-----------" << std::endl;
+    
     if (start>=0) {
         incl_end = extendInclEnd(hap1, hap2, incl_end, max_gap, site_mapping, matches, gen_map, min_seed, min_extend, min_extend_markers, genotype_array);
-        
+        std::cout << hap1 << " " << hap2 << " " << start << " " << incl_end << std::endl;
         if ((gen_map.interpolated_cm[incl_end] - gen_map.interpolated_cm[start])>=min_output) {
             out << hapToTskId(hap1) << "\t" << hapToTskId(hap2) << "\t" << "20" << "\t" << site_mapping[start] << "\t" << site_mapping[incl_end] << "\t" << roundToNDigits(gen_map.interpolated_cm[incl_end] - gen_map.interpolated_cm[start], 3) << "\n";
             }

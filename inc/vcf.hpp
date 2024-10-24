@@ -3,6 +3,9 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <fstream>
+#include <sstream>
+#include <stdexcept>
 #include "utils.hpp"
 
 extern "C"

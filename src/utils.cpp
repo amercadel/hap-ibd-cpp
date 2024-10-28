@@ -1,4 +1,6 @@
 #include <utility>
+#include <string>
+#include <sstream>
 #include "utils.hpp"
 
 std::vector<std::pair<int, int>> overlappingWindows(std::vector<float> cm, float min_seed, int min_markers, int n_threads){
@@ -19,4 +21,16 @@ std::vector<std::pair<int, int>> overlappingWindows(std::vector<float> cm, float
     return window_vec;
 }
 
+
+std::vector<std::string> getIntermediateMatchFileNames(int n_threads){
+    std::vector<std::string> file_names;
+    std::string name;
+    for(int i = 0; i < n_threads; i++){
+        std::stringstream ss;
+        ss << "intermediate_matches_" << i << ".txt";
+        name = ss.str();
+        file_names.push_back(name);
+    }
+    return file_names;
+}
 

@@ -21,7 +21,7 @@ extern "C"
 class hapIBDCpp{
 	public:
 		hapIBDCpp(char* input_vcf, char* plink_rate_map, const char* output_file_path = "output.txt", float min_seed = 2.0f, int max_gap = 1000, 
-					float min_extend = 1.0f, float min_output = 2.0f, int min_markers = 100, int min_mac = 2){
+					float min_extend = 1.0f, float min_output = 2.0f, int min_markers = 100, int min_mac = 2, int n_threads = 1){
 			this->input_vcf = input_vcf;
 			this->plink_rate_map = plink_rate_map;
 			this->output_file_path = output_file_path;
@@ -34,23 +34,24 @@ class hapIBDCpp{
 			this->min_markers = min_markers;
 			this->min_mac = min_mac;
 			this->min_markers_extend = floor((this->min_extend/this->min_seed) * this->min_markers);
+			this->n_threads = n_threads;
 
 			
-			std::vector<std::pair<int, int>> windows = overlappingWindows(this->gen_map.interpolated_cm, this->min_seed, this->min_markers, 4);
-			std::vector<char*> intermediate_files = splitVCFByPos(this->input_vcf, windows);
+			// std::vector<std::pair<int, int>> windows = overlappingWindows(this->gen_map.interpolated_cm, this->min_seed, this->min_markers, this->n_threads);
+			// std::vector<char*> intermediate_files = splitVCFByPos(this->input_vcf, windows);
 
 			
-			#pragma omp parallel for
-			for(int i = 0; i < intermediate_files.size(); i++){
-				runPBWT(intermediate_files[i], i);
-			}
-			// std::cout << "running pbwt\n";
-			// runPBWT(this->input_vcf, 0);
+			// #pragma omp parallel for
+			// for(int i = 0; i < intermediate_files.size(); i++){
+			// 	runPBWT(intermediate_files[i], i);
+			// }
+			std::cout << "running pbwt\n";
+			runPBWT(this->input_vcf, 0);
 			
-			// std::cout << "fetching matches" << std::endl;
-			// this->getMatches("intermediate_matches_0.txt");
-			// std::cout << "processing seeds\n";
-			// processSeeds();
+			std::cout << "fetching matches" << std::endl;
+			this->getMatches("intermediate_matches_0.txt");
+			std::cout << "processing seeds\n";
+			processSeeds();
  			
 			
 			
@@ -75,6 +76,7 @@ class hapIBDCpp{
 		int min_markers;
 		int min_mac;
 		int min_markers_extend;
+		int n_threads;
 		std::vector<Match> matches;
 		rateMapData gen_map;
 		std::vector<int> site_mapping;

@@ -25,5 +25,11 @@ struct rateMapData{
 
 };
 rateMapData readRateMap(char* filename, std::vector<int> &sites);
+
+// gets genetic position based on interpolated genetic distance
+// OUTPUT: a float representing a site's genetic position
 float getGeneticPosition(std::vector<float> &interpolated_cm, int site_idx);
+
+// simple splitting function
+// OUTPUT: a vector of strings, split based on delim
 std::vector<std::string> split(std::string &line, char delim);

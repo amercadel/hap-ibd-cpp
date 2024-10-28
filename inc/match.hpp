@@ -155,6 +155,7 @@ int nextInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> 
     int first_match = incl_end + 2;
     while(m < last_marker){
         ++m;
+        
         int a1 = genotype_array[m][hap1];
         int a2 = genotype_array[m][hap2];
         if(a1 != a2){
@@ -173,15 +174,15 @@ int nextInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> 
 }
 
 int extendInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, float min_seed, float min_extend, int min_extend_markers, std::vector<std::vector<int>> &genotype_array){
-    int last_marker = site_mapping.size();
+    int last_marker = site_mapping.size() - 1;
     while (incl_end<last_marker && (genotype_array[incl_end + 1][hap1] == genotype_array[incl_end + 1][hap2])) {
         ++incl_end;
     }
     int prev_incl_end = incl_end;
-    int next_incl_end = nextInclEnd(hap1, hap2, prev_incl_end, 1000, site_mapping, matches, gen_map, 2.0, 1.0, 100, genotype_array);
+    int next_incl_end = nextInclEnd(hap1, hap2, prev_incl_end, max_gap, site_mapping, matches, gen_map, min_seed, min_extend, min_extend_markers, genotype_array);
     while (next_incl_end>prev_incl_end) {
         prev_incl_end = next_incl_end;
-        next_incl_end = nextInclEnd(hap1, hap2, prev_incl_end, 1000, site_mapping, matches, gen_map, 2.0, 1.0, 100, genotype_array);
+        next_incl_end = nextInclEnd(hap1, hap2, prev_incl_end, max_gap, site_mapping, matches, gen_map, min_seed, min_extend, min_extend_markers, genotype_array);
     }
     return next_incl_end;
 }
@@ -202,6 +203,9 @@ std::string processSeed(int hap1, int hap2, int start, int incl_end, int max_gap
     start = extendStart(hap1, hap2, start, max_gap, site_mapping, matches, gen_map, min_seed, min_extend, min_seed_markers, min_extend_markers, genotype_array);
     if (start>=0) {
         incl_end = extendInclEnd(hap1, hap2, incl_end, max_gap, site_mapping, matches, gen_map, min_seed, min_extend, min_extend_markers, genotype_array);
+        if (incl_end >= site_mapping.size()){
+            incl_end = site_mapping.size() - 1;
+        }
         if ((gen_map.interpolated_cm[incl_end] - gen_map.interpolated_cm[start])>=min_output) {
             out << hapToTskId(hap1) << "\t" << hapToTskId(hap2) << "\t" << "20" << "\t" << site_mapping[start] << "\t" << site_mapping[incl_end] << "\t" << roundToNDigits(gen_map.interpolated_cm[incl_end] - gen_map.interpolated_cm[start], 3) << "\n";
             }

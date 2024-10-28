@@ -74,7 +74,7 @@ class hapIBDCpp{
 		int min_markers;
 		int min_mac;
 		int min_markers_extend;
-		std::vector<Match> filtered_matches;
+		std::vector<Match> matches;
 		rateMapData gen_map;
 		std::vector<int> site_mapping;
 		std::vector<std::vector<int>> genotype_array;
@@ -91,11 +91,9 @@ class hapIBDCpp{
 
 		}
 		void getMatches(char* match_file){
-			std::vector<Match> *matches = new std::vector<Match>;
 			std::ifstream mf;
 			mf.open(match_file);
 			std::string line;
-			
 			while(std::getline(mf, line)){
 				Match m(line);
 				float f1 = getGeneticPosition(gen_map.interpolated_cm, m.start_site);
@@ -103,42 +101,24 @@ class hapIBDCpp{
 				float len = f2 - f1;
 				if ((len >= this->min_seed) && ((m.n_sites) >= this->min_markers)){
 					m.len_cm = len;
-					
-					matches->push_back(m);
+					this->matches.push_back(m);
 					}
-			}
-			mf.close();
-			std::sort(matches->begin(), matches->end(), compareMatch);
-			std::cout << "got matches\n";
-			size_t i = 0;
-			while(i < matches->size() - 1){
-				if((*matches)[i] == (*matches)[i+1]){
-					this->filtered_matches.push_back((*matches)[i]);
-					i = i + 2;
-				}
-				else{
-					this->filtered_matches.push_back((*matches)[i]);
-					i++;
-				}
 				
 			}
-			delete matches;
+
+			std::cout << "got matches\n";
 
 		}
 		void processSeeds(){
 			std::ofstream output_file(this->output_file_path);
-			for(size_t c = 0; c < filtered_matches.size(); c++){				
+			for(size_t c = 0; c < this->matches.size(); c++){				
 				
-				Match m = filtered_matches[c];
+				Match m = this->matches[c];
+				if(m.hap1 == 1979 && m.hap2 == 1994){
+						m.display();
+					}		
 				std::string out;
-				if(m.hap1 == 686 && m.hap2 == 773){
-					m.display();
-					std::cout << extendStart(m.hap1, m.hap2, m.start_site, this->max_gap, this->site_mapping, this->filtered_matches, this->gen_map, this->min_seed, this->min_extend, this->min_markers, this->min_markers_extend, this->genotype_array) << std::endl;	
-					std::cout << extendInclEnd(m.hap1, m.hap2, m.end_site, this->max_gap, this->site_mapping, this->filtered_matches, this->gen_map, this->min_seed, this->min_extend, this->min_markers_extend, this->genotype_array) << std::endl;
-					// out = processSeed(m.hap1, m.hap2, m.start_site, m.end_site, this->max_gap, this->site_mapping, this->filtered_matches, this->gen_map, this->min_seed, this->min_extend, this->min_markers, this->min_markers_extend, this->min_output, this->genotype_array);
-				}
-				
-				out = processSeed(m.hap1, m.hap2, m.start_site, m.end_site, this->max_gap, this->site_mapping, this->filtered_matches, this->gen_map, this->min_seed, this->min_extend, this->min_markers, this->min_markers_extend, this->min_output, this->genotype_array);
+				out = processSeed(m.hap1, m.hap2, m.start_site, m.end_site, this->max_gap, this->site_mapping, this->matches, this->gen_map, this->min_seed, this->min_extend, this->min_markers, this->min_markers_extend, this->min_output, this->genotype_array);
 				if(!out.empty()){
 					output_file << out;
 					}

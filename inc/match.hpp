@@ -20,7 +20,7 @@ class Match{
         int start_site;
         int end_site;
         int n_sites;
-        double len_cm;
+        double len_cm = NULL;
         Match(std::string &input_str){
             std::vector<std::string> split_str = split(input_str, '\t');
             this->hap1 = std::min(stoi(split_str[1]), stoi(split_str[2]));

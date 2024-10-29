@@ -48,10 +48,10 @@ class hapIBDCpp{
 
 			// }
 			
-			runPBWT(this->input_vcf, 0);
+			int* raw_matches = runPBWT(this->input_vcf, 0);
 			
 			std::cout << "fetching matches" << std::endl;
-			this->getMatches("intermediate_matches_0.txt");
+			getMatches(raw_matches);
 			std::cout << "processing seeds\n";
 			processSeeds();
  			
@@ -84,53 +84,35 @@ class hapIBDCpp{
 		rateMapData gen_map;
 		std::vector<int> site_mapping;
 		std::vector<std::vector<int>> genotype_array;
-		void runPBWT(char* input_vcf, int index){
+		int* runPBWT(char* input_vcf, int index){
 			pbwtInit();
 			PBWT* p = 0;
 			if(p){
 				pbwtDestroy(p);
 			}
 			p = pbwtReadVcfGT(input_vcf);
-			pbwtLongMatches(p, 350, index);
+			int* raw_matches = pbwtLongMatches(p, 100, index);
+			return raw_matches;
 
 			
 
 		}
 
-		void getMatches(std::string match_file){
-			std::ifstream mf;
-			mf.open(match_file);
-			std::string line;
-			while(std::getline(mf, line)){
-				Match m(line);
+		void getMatches(int* matches_array){
+			int i = 0;
+			while(matches_array[i] != -1){
+				Match m(matches_array[i], matches_array[i+1], matches_array[i+2], matches_array[i+3]);
 				double f1 = getGeneticPosition(gen_map.interpolated_cm, m.start_site);
 				double f2 = getGeneticPosition(gen_map.interpolated_cm, m.end_site);
+				
 				double len = f2 - f1;
 				if ((len >= this->min_seed) && ((m.n_sites) >= this->min_markers)){
 					m.len_cm = len;
 					this->matches.push_back(m);
 					}
+				i = i + 4;
 				
 			}
-
-		}
-		void getMatches(char* match_file){
-			std::ifstream mf;
-			mf.open(match_file);
-			std::string line;
-			while(std::getline(mf, line)){
-				Match m(line);
-				double f1 = getGeneticPosition(gen_map.interpolated_cm, m.start_site);
-				double f2 = getGeneticPosition(gen_map.interpolated_cm, m.end_site);
-				double len = f2 - f1;
-				if ((len >= this->min_seed) && ((m.n_sites) >= this->min_markers)){
-					m.len_cm = len;
-					this->matches.push_back(m);
-					}
-				
-			}
-
-			std::cout << "got matches\n";
 
 		}
 		void processSeeds(){

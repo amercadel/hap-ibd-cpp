@@ -31,5 +31,8 @@ pbwt_dep = declare_dependency(include_directories: pbwt_inc,
 
 my_includes = include_directories('inc')
 
+omp = dependency('openmp', required: true)
 
-executable('hap-ibd-cpp', ['src/main.cpp', 'src/match.cpp', 'src/vcf.cpp', 'src/read_rate_map.cpp', 'src/utils.cpp'], dependencies: [htslib_dep, pbwt_dep], include_directories: [my_includes])
+
+
+executable('hap-ibd-cpp', ['src/main.cpp', 'src/match.cpp', 'src/vcf.cpp', 'src/read_rate_map.cpp', 'src/utils.cpp'], dependencies: [htslib_dep, pbwt_dep, omp], include_directories: [my_includes])

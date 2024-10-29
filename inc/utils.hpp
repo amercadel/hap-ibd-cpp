@@ -69,7 +69,7 @@ T roundToNDigits(T num, int n_digits){
 
 // generates overlapping windows to guarantee that a seed is found, but allowing for parallelization
 // OUTPUT: a vector of pairs representing where to split the VCF to guarantee seed will be found
-std::vector<std::pair<int, int>> overlappingWindows(std::vector<float> cm, float min_seed, int min_markers, int n_threads);
+std::vector<std::pair<int, int>> overlappingWindows(std::vector<double> cm, double min_seed, int min_markers, int n_threads);
 
 // generates filenames (not ideal)
 // the file names are also generated in the pbwtMatch.c file in pbwt, but I do not want to mess around with that code too much

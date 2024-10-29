@@ -11,7 +11,7 @@
 #include "match.hpp"
 #include "vcf.hpp"
 #include "utils.hpp"
-// #include "omp.h"
+#include "omp.h"
 extern "C"
 {
 #include "pbwt.h"
@@ -20,8 +20,8 @@ extern "C"
 
 class hapIBDCpp{
 	public:
-		hapIBDCpp(char* input_vcf, char* plink_rate_map, const char* output_file_path = "output.txt", float min_seed = 2.0f, int max_gap = 1000, 
-					float min_extend = 1.0f, float min_output = 2.0f, int min_markers = 100, int min_mac = 2, int n_threads = 1){
+		hapIBDCpp(char* input_vcf, char* plink_rate_map, const char* output_file_path = "output.txt", double min_seed = 2.0f, int max_gap = 1000, 
+					double min_extend = 1.0f, double min_output = 2.0f, int min_markers = 100, int min_mac = 2, int n_threads = 1){
 			this->input_vcf = input_vcf;
 			this->plink_rate_map = plink_rate_map;
 			this->output_file_path = output_file_path;
@@ -29,7 +29,7 @@ class hapIBDCpp{
 			this->gen_map = readRateMap(plink_rate_map, site_mapping);
 			this->min_seed = min_seed;
 			this->max_gap = max_gap;
-			this->min_extend = std::min(1.0f, this->min_seed);
+			this->min_extend = std::min(1.0, this->min_seed);
 			this->min_output = min_output;
 			this->min_markers = min_markers;
 			this->min_mac = min_mac;
@@ -39,13 +39,15 @@ class hapIBDCpp{
 			
 			// std::vector<std::pair<int, int>> windows = overlappingWindows(this->gen_map.interpolated_cm, this->min_seed, this->min_markers, this->n_threads);
 			// std::vector<char*> intermediate_files = splitVCFByPos(this->input_vcf, windows);
-
-			
+			// std::vector<std::string> intermediate_matches = getIntermediateMatchFileNames(this->n_threads);
 			// #pragma omp parallel for
 			// for(int i = 0; i < intermediate_files.size(); i++){
 			// 	runPBWT(intermediate_files[i], i);
+			// 	this->getMatches(intermediate_matches[i]);
+			// 	processSeeds();
+
 			// }
-			std::cout << "running pbwt\n";
+			
 			runPBWT(this->input_vcf, 0);
 			
 			std::cout << "fetching matches" << std::endl;
@@ -69,14 +71,15 @@ class hapIBDCpp{
 		char* input_vcf;
 		char* plink_rate_map;
 		const char* output_file_path;
-		float min_seed;
+		double min_seed;
 		int max_gap;
-		float min_extend;
-		float min_output;
+		double min_extend;
+		double min_output;
 		int min_markers;
 		int min_mac;
 		int min_markers_extend;
 		int n_threads;
+		std::vector<std::vector<std::string>> output_strs;
 		std::vector<Match> matches;
 		rateMapData gen_map;
 		std::vector<int> site_mapping;
@@ -93,15 +96,33 @@ class hapIBDCpp{
 			
 
 		}
+
+		void getMatches(std::string match_file){
+			std::ifstream mf;
+			mf.open(match_file);
+			std::string line;
+			while(std::getline(mf, line)){
+				Match m(line);
+				double f1 = getGeneticPosition(gen_map.interpolated_cm, m.start_site);
+				double f2 = getGeneticPosition(gen_map.interpolated_cm, m.end_site);
+				double len = f2 - f1;
+				if ((len >= this->min_seed) && ((m.n_sites) >= this->min_markers)){
+					m.len_cm = len;
+					this->matches.push_back(m);
+					}
+				
+			}
+
+		}
 		void getMatches(char* match_file){
 			std::ifstream mf;
 			mf.open(match_file);
 			std::string line;
 			while(std::getline(mf, line)){
 				Match m(line);
-				float f1 = getGeneticPosition(gen_map.interpolated_cm, m.start_site);
-				float f2 = getGeneticPosition(gen_map.interpolated_cm, m.end_site);
-				float len = f2 - f1;
+				double f1 = getGeneticPosition(gen_map.interpolated_cm, m.start_site);
+				double f2 = getGeneticPosition(gen_map.interpolated_cm, m.end_site);
+				double len = f2 - f1;
 				if ((len >= this->min_seed) && ((m.n_sites) >= this->min_markers)){
 					m.len_cm = len;
 					this->matches.push_back(m);

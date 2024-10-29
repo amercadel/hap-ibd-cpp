@@ -20,7 +20,7 @@ class Match{
         int start_site;
         int end_site;
         int n_sites;
-        float len_cm;
+        double len_cm;
         Match(std::string &input_str){
             std::vector<std::string> split_str = split(input_str, '\t');
             this->hap1 = std::min(stoi(split_str[1]), stoi(split_str[2]));
@@ -61,20 +61,20 @@ class Match{
 // nextStart moves backwards to find a potential extension before the beginning of a seed
 // if another seed segment is directly adjacent to it moving backwards, the seed is discarded, since the seed will be included when that previous seed is extended forward
 // OUTPUT: the next site if possible, else -1
-int nextStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, float min_seed, float min_extend, int min_seed_markers, int min_extend_markers, std::vector<std::vector<int>> &genotype_array);
+int nextStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site_mapping, rateMapData &gen_map, double min_seed, double min_extend, int min_seed_markers, int min_extend_markers, std::vector<std::vector<int>> &genotype_array);
 
 
 // extendStart calls nextStart until either another seed segment is found, or you reach a point where you can no longer extend (gap greater than max_gap)
 // OUTPUT: the next site if possible, else -1
-int extendStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, float min_seed, float min_extend, int min_seed_markers, int min_extend_markers, std::vector<std::vector<int>> &genotype_array);
+int extendStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site_mapping, rateMapData &gen_map, double min_seed, double min_extend, int min_seed_markers, int min_extend_markers, std::vector<std::vector<int>> &genotype_array);
 
 // nextInclEnd moves forward to find a potential extension after the end of a seed
 // OUTPUT: the next site for an extension (if possible)
-int nextInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, float min_seed, float min_extend, int min_extend_markers, std::vector<std::vector<int>> &genotype_array);
+int nextInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> &site_mapping, rateMapData &gen_map, double min_seed, double min_extend, int min_extend_markers, std::vector<std::vector<int>> &genotype_array);
 
 // extendInclEnd calls nextInclEnd until it can no longer be extended
 // OUTPUT: the last possible site after extension (if possible)
-int extendInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, float min_seed, float min_extend, int min_extend_markers, std::vector<std::vector<int>> &genotype_array);
+int extendInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> &site_mapping, rateMapData &gen_map, double min_seed, double min_extend, int min_extend_markers, std::vector<std::vector<int>> &genotype_array);
 
 // simple function to match the output format of hap-IBD's original implentation
 // OUTPUT: string in the format of hap-IBD
@@ -86,7 +86,7 @@ std::string hapToTskId(int hap);
 // if the seed is extended backward, it is then extended forward (if possible)
 // once the extension is done, if the segment is longer than the input threshold, the segment is written to the output file
 // OUTPUT: the output string
-std::string processSeed(int hap1, int hap2, int start, int incl_end, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, float min_seed, float min_extend, int min_seed_markers, int min_extend_markers, float min_output, std::vector<std::vector<int>> &genotype_array);
+std::string processSeed(int hap1, int hap2, int start, int incl_end, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, double min_seed, double min_extend, int min_seed_markers, int min_extend_markers, double min_output, std::vector<std::vector<int>> &genotype_array);
 
 
 

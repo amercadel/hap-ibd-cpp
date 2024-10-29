@@ -4,7 +4,7 @@
 #include "read_rate_map.hpp"
 #include "utils.hpp"
 
-float getGeneticPosition(std::vector<float> &interpolated_cm, int site_idx){
+double getGeneticPosition(std::vector<double> &interpolated_cm, int site_idx){
     assert(site_idx < interpolated_cm.size());
     if(site_idx < interpolated_cm.size()){
         return interpolated_cm[site_idx];
@@ -27,17 +27,17 @@ std::vector<std::string> split(std::string &line, char delim){
 
 }
 
-std::vector<float> rateMapData::interpolateVector(std::vector<int> &sites) {
-    std::vector<float> interpolated_cm;
+std::vector<double> rateMapData::interpolateVector(std::vector<int> &sites) {
+    std::vector<double> interpolated_cm;
     for(size_t c = 0; c < sites.size(); c++){
         interpolated_cm.push_back(genPos(sites[c]));
     }
     return interpolated_cm;
 }
 
-float rateMapData::genPos(int site){
+double rateMapData::genPos(int site){
     int map_size_m1 = bp_vec.size() - 1;
-    float min_end_cm_dist = 5.0f;
+    double min_end_cm_dist = 5.0f;
     auto it = std::lower_bound(bp_vec.begin(), bp_vec.end(), site);
     int index = it - bp_vec.begin();
     if (it != bp_vec.end() && *it == site){
@@ -67,14 +67,14 @@ float rateMapData::genPos(int site){
         int x = site;
         int a = bp_vec[a_index];
         int b = bp_vec[b_index];
-        float fa = cm_vec[a_index];
-        float fb = cm_vec[b_index];
-        return fa + (((float)(x - a) / (float)(b - a)) * (fb - fa));
+        double fa = cm_vec[a_index];
+        double fb = cm_vec[b_index];
+        return fa + (((double)(x - a) / (double)(b - a)) * (fb - fa));
     }
     
 }
 
-float rateMapData::interpolateBasePairToGenPos(int site){
+double rateMapData::interpolateBasePairToGenPos(int site){
     int idx = findVectorIndex(bp_vec, site);
     if (idx > 0){
         return cm_vec[idx];
@@ -85,17 +85,17 @@ float rateMapData::interpolateBasePairToGenPos(int site){
             return cm_vec[0];
         }
         else if(idx >= bp_vec.size()){
-            float slope = ((cm_vec.back() - cm_vec.front()) / (bp_vec.back() - bp_vec.front()));
-            float y_int = cm_vec.back() - (slope * bp_vec.back());
+            double slope = ((cm_vec.back() - cm_vec.front()) / (bp_vec.back() - bp_vec.front()));
+            double y_int = cm_vec.back() - (slope * bp_vec.back());
             return slope * site + y_int;
         }
 
         else{
             int x0 = bp_vec[idx - 1];
             int x1 = bp_vec[idx];
-            float y0 = cm_vec[idx - 1];
-            float y1 = cm_vec[idx];
-            float y = ((y0 * (x1 - site)) + (y1 * (site - x0))) / (x1 - x0);
+            double y0 = cm_vec[idx - 1];
+            double y1 = cm_vec[idx];
+            double y = ((y0 * (x1 - site)) + (y1 * (site - x0))) / (x1 - x0);
             return y;
 
         }
@@ -107,18 +107,18 @@ rateMapData readRateMap(char* filename, std::vector<int> &sites){
     std::ifstream inputFile;
     std::string line;
     std::vector<int> bp_vec;
-    std::vector<float> cm_vec;
+    std::vector<double> cm_vec;
     inputFile.open(filename);
     std::cout << "reading genetic map file\n";
     rateMapData res;
     while (getline(inputFile, line)) {
         int bp;
-        float cm;
+        double cm;
         std::string tmp;
         std::stringstream input_str(line); 
         std::vector<std::string> data = split(line, ' ');
         bp = std::stoi(data[3]);
-        cm = std::stof(data[2]);
+        cm = std::stod(data[2]);
         bp_vec.push_back(bp);
         cm_vec.push_back(cm);
 

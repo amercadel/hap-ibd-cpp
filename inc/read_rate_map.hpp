@@ -10,14 +10,14 @@
 
 struct rateMapData{
     std::vector<int> bp_vec;
-    std::vector<float> cm_vec;
-    std::vector<float> interpolated_cm;
+    std::vector<double> cm_vec;
+    std::vector<double> interpolated_cm;
     
-    std::vector<float> interpolateVector(std::vector<int> &sites);
-    float interpolateBasePairToGenPos(int site);
-    float genPos(int site);
+    std::vector<double> interpolateVector(std::vector<int> &sites);
+    double interpolateBasePairToGenPos(int site);
+    double genPos(int site);
     int last_bp;
-    float last_cm;
+    double last_cm;
 
     void display(int idx){
         std::cout << "bp value: " << bp_vec[idx] << std::endl << "cm value: " << cm_vec[idx] << std::endl;
@@ -27,8 +27,8 @@ struct rateMapData{
 rateMapData readRateMap(char* filename, std::vector<int> &sites);
 
 // gets genetic position based on interpolated genetic distance
-// OUTPUT: a float representing a site's genetic position
-float getGeneticPosition(std::vector<float> &interpolated_cm, int site_idx);
+// OUTPUT: a double representing a site's genetic position
+double getGeneticPosition(std::vector<double> &interpolated_cm, int site_idx);
 
 // simple splitting function
 // OUTPUT: a vector of strings, split based on delim

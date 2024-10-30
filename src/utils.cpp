@@ -22,17 +22,6 @@ std::vector<std::pair<int, int>> overlappingWindows(std::vector<double> cm, doub
 }
 
 
-std::vector<std::string> getIntermediateMatchFileNames(int n_threads){
-    std::vector<std::string> file_names;
-    std::string name;
-    for(int i = 0; i < n_threads; i++){
-        std::stringstream ss;
-        ss << "intermediate_matches_" << i << ".txt";
-        name = ss.str();
-        file_names.push_back(name);
-    }
-    return file_names;
-}
 
 class HapIBDParameters{
     // 10/29: will implement later

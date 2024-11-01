@@ -119,6 +119,49 @@ std::string processSeed(int hap1, int hap2, int start, int incl_end, int max_gap
     }
 }
 
+int extendBoundaryStart(int hap1, int hap2, int start, std::vector<std::vector<int>> &genotype_array){
+    if (start == 0){
+        return start;
+    }
+    int m = start - 1;
+    int a1 = genotype_array[m][hap1];
+    int a2 = genotype_array[m][hap2];
+    if (a1 != a2){
+        return start;
+    }
+    while(((a1 == a2) && (m >= 0))){
+        --m;
+        a1 = genotype_array[m][hap1];
+        a2 = genotype_array[m][hap2];
+        if(m == 0){
+            return 0;
+        }
+    }
+    return m + 1;
+    
+}
+
+int extendBoundaryEnd(int hap1, int hap2, int incl_end, std::vector<int> &site_mapping, std::vector<std::vector<int>> &genotype_array){
+    int last_marker = site_mapping.size() - 1;
+    if (incl_end == last_marker){
+        return incl_end;
+    }
+    int m = incl_end + 1;
+    int a1 = genotype_array[m][hap1];
+    int a2 = genotype_array[m][hap2];
+    if (a1 != a2){
+        return incl_end;
+    }
+    while(((a1 == a2) && (m < last_marker))){
+        ++m;
+        a1 = genotype_array[m][hap1];
+        a2 = genotype_array[m][hap2];
+    }
+    return m - 1;
+}
+
+
+
 
 
 

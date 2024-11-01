@@ -20,7 +20,8 @@ class Match{
         int start_site;
         int end_site;
         int n_sites;
-        double len_cm = NULL;
+        double len_cm = 0.0;
+        
         Match(std::string &input_str){
             std::vector<std::string> split_str = split(input_str, '\t');
             this->hap1 = std::min(stoi(split_str[1]), stoi(split_str[2]));
@@ -30,15 +31,15 @@ class Match{
             this->n_sites = stoi(split_str[5]);
         }
         Match(int hap1, int hap2, int start_site, int end_site){
-            this->hap1 = hap1;
-            this->hap2 = hap2;
+            this->hap1 = std::min(hap1, hap2);
+            this->hap2 = std::max(hap1, hap2);
             this->start_site = start_site;
             this->end_site = end_site - 1;
             this->n_sites = end_site - start_site;
         }
         void display(){
             // simple display function
-            if(this->len_cm){
+            if(this->len_cm > 0){
                 std::cout << this->hap1 << "\t" << this->hap2 << "\t" << this->start_site << "\t" << this->end_site << "\t" << this->len_cm << std::endl;
             }
             else{
@@ -88,7 +89,7 @@ std::string hapToTskId(int hap);
 // OUTPUT: the output string
 std::string processSeed(int hap1, int hap2, int start, int incl_end, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, double min_seed, double min_extend, int min_seed_markers, int min_extend_markers, double min_output, std::vector<std::vector<int>> &genotype_array);
 
-
-
+int extendBoundaryEnd(int hap1, int hap2, int incl_end, std::vector<int> &site_mapping, std::vector<std::vector<int>> &genotype_array);
+int extendBoundaryStart(int hap1, int hap2, int start, std::vector<std::vector<int>> &genotype_array);
 
 

@@ -9,12 +9,10 @@
 #include "match.hpp"
 #include "vcf.hpp"
 #include "utils.hpp"
-#include "omp.h"
 extern "C"
 {
 #include "pbwt.h"
 }
-// need to fix issue with min markers extend vs min markers seed. first I'd like to clean everything up
 
 class hapIBDCpp{
 	public:
@@ -37,6 +35,9 @@ class hapIBDCpp{
 
 			this->windows = overlappingWindows(this->gen_map.interpolated_cm, this->min_seed, this->min_markers, this->n_threads);
 			this->intermediate_files = splitVCFByPos(this->input_vcf, windows);
+			
+
+
 
 			std::vector<std::thread> threads;
 			for(int i = 0; i < this->n_threads; ++i){
@@ -46,7 +47,10 @@ class hapIBDCpp{
 			for(auto& t: threads){
 				t.join();
 			}
+
 			outputSegments();
+
+			
 	
 	
 			
@@ -93,6 +97,14 @@ class hapIBDCpp{
 			std::vector<Match> seeds;
 			while(matches_array[i] != -1){
 				Match m(matches_array[i], matches_array[i+1], matches_array[i+2] + this->windows[index].first, matches_array[i+3] + this->windows[index].first);
+				if(m.start_site == this->windows[index].first){
+					m.start_site = extendBoundaryStart(m.hap1, m.hap2, m.start_site, this->genotype_array);
+				}
+				if(m.end_site == this->windows[index].second){
+					m.end_site = extendBoundaryEnd(m.hap1, m.hap2, m.end_site, this->site_mapping, this->genotype_array);
+				}
+				m.n_sites = m.end_site - m.start_site;
+				
 				double f1 = getGeneticPosition(gen_map.interpolated_cm, m.start_site);
 				double f2 = getGeneticPosition(gen_map.interpolated_cm, m.end_site);
 				double len = f2 - f1;

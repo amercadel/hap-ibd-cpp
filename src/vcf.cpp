@@ -70,7 +70,7 @@ std::vector<char*> splitVCFByPos(char* input_vcf, std::vector<std::pair<int, int
         oss << "intermediate_vcf_" << overlapping_windows[i].first << "_" << overlapping_windows[i].second << ".vcf";
         std::string output_file_name = oss.str();
         char* output_file_name_cstr = new char[output_file_name.length() + 1];
-        std::strcpy(output_file_name_cstr, output_file_name.c_str());
+        strcpy(output_file_name_cstr, output_file_name.c_str());
         file_names.push_back(output_file_name_cstr);
         output_files[i] = hts_open(output_file_name_cstr, "w");  // Open output file
         int ret = bcf_hdr_write(output_files[i], hdr);

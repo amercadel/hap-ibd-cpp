@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <cmath>
 
 
 // simple binary search for an insertion index if you need to only search a certain subset of a vector
@@ -63,8 +64,8 @@ int findVectorIndex(std::vector<T> &vec, T val){
 // simple rounding function
 template<typename T>
 T roundToNDigits(T num, int n_digits){
-    auto scale = std::pow(10.0, n_digits);
-    return std::round(num * scale) / scale;
+    auto scale = pow(10.0, n_digits);
+    return round(num * scale) / scale;
 }
 
 // generates overlapping windows to guarantee that a seed is found, but allowing for parallelization

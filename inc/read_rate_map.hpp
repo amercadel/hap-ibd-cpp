@@ -4,6 +4,11 @@
 #include <cmath>
 #include <algorithm>
 #include <cassert>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <cstdlib> 
 #include "utils.hpp"
 
 

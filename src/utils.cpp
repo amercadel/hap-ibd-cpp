@@ -20,6 +20,24 @@ std::vector<std::pair<int, int>> overlappingWindows(std::vector<double> cm, doub
     }
     return window_vec;
 }
+int minSites(std::vector<double> &cm_mapping, double min_seed){
+	int min = cm_mapping.size();
+	for(int i = 0; i < cm_mapping.size(); i++){
+		int j = i + 1;
+		
+		while ((j < cm_mapping.size()) && (cm_mapping[j] - cm_mapping[i] < min_seed)){
+			j++;
+		}
+		if((cm_mapping.back() - cm_mapping[i] > min_seed)){
+			int n = j - i + 1;
+			if (n < min){
+				min = n;
+			}
+		}
+		
+	}
+	return (min == cm_mapping.size()) ? -1 : min;
+}
 
 
 

@@ -14,14 +14,16 @@ extern "C"
 #include "pbwt.h"
 }
 
+
 class hapIBDCpp{
 	public:
-		hapIBDCpp(char* input_vcf, char* plink_rate_map, const char* output_file_path = "output.txt", double min_seed = 2.0f, int max_gap = 1000, 
-					double min_extend = 1.0f, double min_output = 2.0f, int min_markers = 100, int min_mac = 2, int n_threads = 1){
+		hapIBDCpp(char* input_vcf, char* plink_rate_map, int n_threads, const char* output_file_path = "output.txt", double min_seed = 2.0f, int max_gap = 1000, 
+					double min_extend = 1.0f, double min_output = 2.0f, int min_markers = 100, int min_mac = 2){
 			this->input_vcf = input_vcf;
 			this->plink_rate_map = plink_rate_map;
 			this->output_file_path = output_file_path;
-			getSiteMappingAndGenotypes(input_vcf, this->genotype_array, this->site_mapping);
+			// getSiteMappingAndGenotypes(input_vcf, this->genotype_array, this->site_mapping, this->n_threads);
+			getSiteMappingAndGenotypes(input_vcf, this->alt_map, this->site_mapping, this->n_threads);
 			this->gen_map = readRateMap(plink_rate_map, site_mapping);
 			this->min_seed = min_seed;
 			this->max_gap = max_gap;
@@ -31,6 +33,7 @@ class hapIBDCpp{
 			this->min_mac = min_mac;
 			this->min_markers_extend = floor((this->min_extend/this->min_seed) * this->min_markers);
 			this->n_threads = n_threads;
+			this->cm_threshold_sites =  minSites(this->gen_map.interpolated_cm, this->min_seed);
 
 
 			this->windows = overlappingWindows(this->gen_map.interpolated_cm, this->min_seed, this->min_markers, this->n_threads);
@@ -70,11 +73,13 @@ class hapIBDCpp{
 		int min_mac;
 		int min_markers_extend;
 		int n_threads;
+		int cm_threshold_sites;
 		std::vector<char*> intermediate_files;
 		std::vector<Match> matches;
 		rateMapData gen_map;
 		std::vector<int> site_mapping;
 		std::vector<std::vector<int>> genotype_array;
+		std::map<int, std::vector<int>> alt_map;
 		std::set<std::string> output_strs;
 		std::vector<std::pair<int, int>> windows;
 		
@@ -85,7 +90,7 @@ class hapIBDCpp{
 				pbwtDestroy(p);
 			}
 			p = pbwtReadVcfGT(input_vcf);
-			int* raw_matches = pbwtLongMatches(p, 100, index);
+			int* raw_matches = pbwtLongMatches(p, this->cm_threshold_sites, index);
 			return raw_matches;
 
 			
@@ -97,11 +102,14 @@ class hapIBDCpp{
 			std::vector<Match> seeds;
 			while(matches_array[i] != -1){
 				Match m(matches_array[i], matches_array[i+1], matches_array[i+2] + this->windows[index].first, matches_array[i+3] + this->windows[index].first);
-				if(m.start_site == this->windows[index].first){
-					m.start_site = extendBoundaryStart(m.hap1, m.hap2, m.start_site, this->genotype_array);
+				if((m.start_site == this->windows[index].first) && (m.start_site != 0)){ // no need to check for extension if it starts at 0
+					// m.start_site = extendBoundaryStart(m.hap1, m.hap2, m.start_site, this->genotype_array);
+					m.start_site = extendBoundaryStart(m.hap1, m.hap2, m.start_site, this->alt_map);
+
 				}
 				if(m.end_site == this->windows[index].second){
-					m.end_site = extendBoundaryEnd(m.hap1, m.hap2, m.end_site, this->site_mapping, this->genotype_array);
+					// m.end_site = extendBoundaryEnd(m.hap1, m.hap2, m.end_site, this->site_mapping, this->genotype_array);
+					m.end_site = extendBoundaryEnd(m.hap1, m.hap2, m.end_site, this->site_mapping, this->alt_map);
 				}
 				m.n_sites = m.end_site - m.start_site;
 				
@@ -122,10 +130,12 @@ class hapIBDCpp{
 				
 				Match m = seeds[c];
 				std::string out;
-				out = processSeed(m.hap1, m.hap2, m.start_site, m.end_site, this->max_gap, this->site_mapping, this->matches, this->gen_map, this->min_seed, this->min_extend, this->min_markers, this->min_markers_extend, this->min_output, this->genotype_array);
+				// out = processSeed(m.hap1, m.hap2, m.start_site, m.end_site, this->max_gap, this->site_mapping, this->matches, this->gen_map, this->min_seed, this->min_extend, this->min_markers, this->min_markers_extend, this->min_output, this->genotype_array);
+				out = processSeed(m.hap1, m.hap2, m.start_site, m.end_site, this->max_gap, this->site_mapping, this->matches, this->gen_map, this->min_seed, this->min_extend, this->min_markers, this->min_markers_extend, this->min_output, this->alt_map);
 				if(!out.empty()){
 					this->output_strs.insert(out);
 				}
+				
 			}
 			
 		}
@@ -162,14 +172,18 @@ int main(int argc, char **argv){
 	auto start = std::chrono::steady_clock::now();
 	char *input_vcf = argv[1];
 	char *plink_rate_map = argv[2];
+	int n_threads = std::stoi(argv[3]);
 	
-	hapIBDCpp obj(input_vcf, plink_rate_map);
+	hapIBDCpp obj(input_vcf, plink_rate_map, n_threads);
 	
 	
 	auto end = std::chrono::steady_clock::now();
     auto diff = end - start;
 	
     std::cout << std::chrono::duration<double>(diff).count() << " seconds" << std::endl;
+	
+
+
 
 	
 	

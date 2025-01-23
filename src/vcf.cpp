@@ -3,6 +3,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <map>
 extern "C"
 {
 #include "htslib/vcf.h"
@@ -14,18 +15,27 @@ extern "C"
 
 
 
-void getSiteMappingAndGenotypes(char* vcf_file, std::vector<std::vector<int>> &genotype_array, std::vector<int> &site_mapping){
+void getSiteMappingAndGenotypes(char* vcf_file, std::vector<std::vector<int>> &genotype_array, std::vector<int> &site_mapping, int n_threads){
+    
     htsFile *fp = hts_open(vcf_file, "r");
+    hts_set_threads(fp, n_threads);
     if(!fp){
         std::cerr << "Error: htslib is unable to open the VCF file\n";
+        hts_close(fp);
     }
     bcf_hdr_t *hdr = bcf_hdr_init("r");
     hdr = bcf_hdr_read(fp);
+    if(!hdr){
+        std::cerr << "Error, htslib failed to read VCF Header";
+        bcf_hdr_destroy(hdr);
+        hts_close(fp);
+    }
     bcf1_t *rec = bcf_init();
     if (!rec) {
         std::cerr << "Error allocating memory for VCF record.\n";
+        bcf_destroy(rec);
         bcf_hdr_destroy(hdr);
-        bcf_close(fp);
+        hts_close(fp);
     }
     while(bcf_read(fp, hdr, rec) == 0){
         int32_t pos = rec->pos + 1;
@@ -60,6 +70,10 @@ void getSiteMappingAndGenotypes(char* vcf_file, std::vector<std::vector<int>> &g
 
 std::vector<char*> splitVCFByPos(char* input_vcf, std::vector<std::pair<int, int>> &overlapping_windows){
     htsFile *input = hts_open(input_vcf, "r");
+    if(!input){
+        std::cerr << "Error: htslib is unable to open the VCF file\n";
+        hts_close(input);
+    }
     bcf_hdr_t *hdr = bcf_hdr_read(input);
     bcf1_t *rec = bcf_init();
     int curr_index = 0;
@@ -73,10 +87,13 @@ std::vector<char*> splitVCFByPos(char* input_vcf, std::vector<std::pair<int, int
         strcpy(output_file_name_cstr, output_file_name.c_str());
         file_names.push_back(output_file_name_cstr);
         output_files[i] = hts_open(output_file_name_cstr, "w");  // Open output file
+        if(!output_files[i]){
+            std::cerr << "Error: htslib is unable to open a VCF file";
+        }
         int ret = bcf_hdr_write(output_files[i], hdr);
         if (ret != 0){
             std::cerr << "failed to write new vcf file\n";
-            exit(EXIT_FAILURE);
+            
         }
 
     }
@@ -94,11 +111,80 @@ std::vector<char*> splitVCFByPos(char* input_vcf, std::vector<std::pair<int, int
     for(size_t i = 0; i < output_files.size(); i++){
         hts_close(output_files[i]);
     }
-    
     hts_close(input);
     bcf_destroy(rec);
     bcf_hdr_destroy(hdr);
     return file_names;
     
 
+}
+
+
+void getSiteMappingAndGenotypes(char* vcf_file, std::map<int, std::vector<int>> &alt_map, std::vector<int> &site_mapping, int n_threads){
+    htsFile *fp = hts_open(vcf_file, "r");
+    // hts_set_threads(fp, n_threads); 
+    if(!fp){
+        std::cerr << "Error: htslib is unable to open the VCF file\n";
+        hts_close(fp);
+    }
+    bcf_hdr_t *hdr = bcf_hdr_init("r");
+    hdr = bcf_hdr_read(fp);
+    if(!hdr){
+        std::cerr << "Error, htslib failed to read VCF Header";
+        bcf_hdr_destroy(hdr);
+        hts_close(fp);
+    }
+    bcf1_t *rec = bcf_init();
+    if (!rec) {
+        std::cerr << "Error allocating memory for VCF record.\n";
+        bcf_destroy(rec);
+        bcf_hdr_destroy(hdr);
+        hts_close(fp);
+    }
+    int c = 0;
+    while(bcf_read(fp, hdr, rec) == 0){
+        int32_t pos = rec->pos + 1;
+        site_mapping.push_back(pos);
+        bcf_unpack(rec, BCF_UN_ALL);
+        std::vector<int> alleles;
+
+
+        int n_samples = bcf_hdr_nsamples(hdr);
+        int *gt_arr = NULL, ngt_arr = 0;
+        if(bcf_get_genotypes(hdr, rec, &gt_arr, &ngt_arr) > 0){
+            for(int i = 0; i < n_samples; i++){
+                int allele1 = gt_arr[2*i];
+                int allele1_gt = bcf_gt_allele(allele1);
+                int allele2 = gt_arr[2*i + 1];
+                int allele2_gt = bcf_gt_allele(allele2);
+                if(allele1_gt != 0){
+                    alleles.push_back(2 * i);
+                }
+                if(allele2_gt != 0){
+                    alleles.push_back(2 * i + 1);
+                }
+            }
+        }
+        alt_map[c] = alleles;
+        free(gt_arr);
+        c++;
+    }
+
+    bcf_destroy(rec);
+    bcf_hdr_destroy(hdr);
+    hts_close(fp);
+}
+
+int getAllele(int site, int hap, std::map<int, std::vector<int>> &alt_map){
+    std::vector<int> alts = alt_map[site];
+    bool isAlt = false;
+    int i = 0;
+    while((i < alts.size()) && (alts[i] < site)){
+        if(alts[i] == hap){
+            isAlt = true;
+            break;
+        }
+        i++;
+    }
+    return isAlt ? 1 : 0;
 }

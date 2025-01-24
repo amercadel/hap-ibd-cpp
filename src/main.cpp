@@ -6,6 +6,8 @@
 #include <thread>
 #include <set>
 #include <filesystem>
+#include <unordered_set>
+
 #include "match.hpp"
 #include "vcf.hpp"
 #include "utils.hpp"
@@ -22,8 +24,8 @@ class hapIBDCpp{
 			this->input_vcf = input_vcf;
 			this->plink_rate_map = plink_rate_map;
 			this->output_file_path = output_file_path;
-			// getSiteMappingAndGenotypes(input_vcf, this->genotype_array, this->site_mapping, this->n_threads);
-			getSiteMappingAndGenotypes(input_vcf, this->alt_map, this->site_mapping, this->n_threads);
+			getSiteMappingAndGenotypes(input_vcf, this->genotype_array, this->site_mapping, this->n_threads);
+			// getSiteMappingAndGenotypes(input_vcf, this->alt_map, this->site_mapping, this->n_threads);
 			this->gen_map = readRateMap(plink_rate_map, site_mapping);
 			this->min_seed = min_seed;
 			this->max_gap = max_gap;
@@ -79,7 +81,7 @@ class hapIBDCpp{
 		rateMapData gen_map;
 		std::vector<int> site_mapping;
 		std::vector<std::vector<int>> genotype_array;
-		std::map<int, std::vector<int>> alt_map;
+		// std::unordered_map<int, std::bitset<MAX_N_SAMPLES>> alt_map;
 		std::set<std::string> output_strs;
 		std::vector<std::pair<int, int>> windows;
 		
@@ -103,13 +105,13 @@ class hapIBDCpp{
 			while(matches_array[i] != -1){
 				Match m(matches_array[i], matches_array[i+1], matches_array[i+2] + this->windows[index].first, matches_array[i+3] + this->windows[index].first);
 				if((m.start_site == this->windows[index].first) && (m.start_site != 0)){ // no need to check for extension if it starts at 0
-					// m.start_site = extendBoundaryStart(m.hap1, m.hap2, m.start_site, this->genotype_array);
-					m.start_site = extendBoundaryStart(m.hap1, m.hap2, m.start_site, this->alt_map);
+					m.start_site = extendBoundaryStart(m.hap1, m.hap2, m.start_site, this->genotype_array);
+					// m.start_site = extendBoundaryStart(m.hap1, m.hap2, m.start_site, this->alt_map);
 
 				}
 				if(m.end_site == this->windows[index].second){
-					// m.end_site = extendBoundaryEnd(m.hap1, m.hap2, m.end_site, this->site_mapping, this->genotype_array);
-					m.end_site = extendBoundaryEnd(m.hap1, m.hap2, m.end_site, this->site_mapping, this->alt_map);
+					m.end_site = extendBoundaryEnd(m.hap1, m.hap2, m.end_site, this->site_mapping, this->genotype_array);
+					// m.end_site = extendBoundaryEnd(m.hap1, m.hap2, m.end_site, this->site_mapping, this->alt_map);
 				}
 				m.n_sites = m.end_site - m.start_site;
 				
@@ -130,8 +132,8 @@ class hapIBDCpp{
 				
 				Match m = seeds[c];
 				std::string out;
-				// out = processSeed(m.hap1, m.hap2, m.start_site, m.end_site, this->max_gap, this->site_mapping, this->matches, this->gen_map, this->min_seed, this->min_extend, this->min_markers, this->min_markers_extend, this->min_output, this->genotype_array);
-				out = processSeed(m.hap1, m.hap2, m.start_site, m.end_site, this->max_gap, this->site_mapping, this->matches, this->gen_map, this->min_seed, this->min_extend, this->min_markers, this->min_markers_extend, this->min_output, this->alt_map);
+				out = processSeed(m.hap1, m.hap2, m.start_site, m.end_site, this->max_gap, this->site_mapping, this->matches, this->gen_map, this->min_seed, this->min_extend, this->min_markers, this->min_markers_extend, this->min_output, this->genotype_array);
+				// out = processSeed(m.hap1, m.hap2, m.start_site, m.end_site, this->max_gap, this->site_mapping, this->matches, this->gen_map, this->min_seed, this->min_extend, this->min_markers, this->min_markers_extend, this->min_output, this->alt_map);
 				if(!out.empty()){
 					this->output_strs.insert(out);
 				}

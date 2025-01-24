@@ -3,7 +3,6 @@
 #include "utils.hpp"
 #include "vcf.hpp"
 
-//std::map<int, std::vector<int>> &alt_map
 
 int nextStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site_mapping, rateMapData &gen_map, double min_seed, double min_extend, int min_seed_markers, int min_extend_markers, std::vector<std::vector<int>> &genotype_array){
     if (start < 2 || max_gap < 0){
@@ -40,7 +39,7 @@ int nextStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site
     }
 }
 
-int nextStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site_mapping, rateMapData &gen_map, double min_seed, double min_extend, int min_seed_markers, int min_extend_markers, std::map<int, std::vector<int>> &alt_map){
+int nextStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site_mapping, rateMapData &gen_map, double min_seed, double min_extend, int min_seed_markers, int min_extend_markers, std::unordered_map<int, std::bitset<MAX_N_SAMPLES>> &alt_map){
     if (start < 2 || max_gap < 0){
         return start;
     }
@@ -85,7 +84,7 @@ int extendStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &si
     return next_start;
 }
 
-int extendStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site_mapping, rateMapData &gen_map, double min_seed, double min_extend, int min_seed_markers, int min_extend_markers, std::map<int, std::vector<int>> &alt_map){
+int extendStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site_mapping, rateMapData &gen_map, double min_seed, double min_extend, int min_seed_markers, int min_extend_markers, std::unordered_map<int, std::bitset<MAX_N_SAMPLES>> &alt_map){
     int prev_start = start;
     int next_start = nextStart(hap1, hap2, prev_start, max_gap, site_mapping, gen_map, min_seed, min_extend, min_seed_markers, min_extend_markers, alt_map);
     while (next_start>=0 && (next_start < prev_start)) {
@@ -123,7 +122,7 @@ int nextInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> 
     return (len<min_extend || (m-first_match)<(min_extend_markers - 1)) ? incl_end : m;
 }
 
-int nextInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> &site_mapping, rateMapData &gen_map, double min_seed, double min_extend, int min_extend_markers, std::map<int, std::vector<int>> &alt_map){
+int nextInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> &site_mapping, rateMapData &gen_map, double min_seed, double min_extend, int min_extend_markers, std::unordered_map<int, std::bitset<MAX_N_SAMPLES>> &alt_map){
     int last_marker = site_mapping.size() - 1;
     if ((incl_end>(last_marker - 2)) || (max_gap < 0)) {
         return incl_end;
@@ -165,7 +164,7 @@ int extendInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int
     return next_incl_end;
 }
 
-int extendInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> &site_mapping, rateMapData &gen_map, double min_seed, double min_extend, int min_extend_markers, std::map<int, std::vector<int>> &alt_map){
+int extendInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> &site_mapping, rateMapData &gen_map, double min_seed, double min_extend, int min_extend_markers, std::unordered_map<int, std::bitset<MAX_N_SAMPLES>> &alt_map){
     int last_marker = site_mapping.size() - 1;
     while (incl_end<last_marker && (getAllele(incl_end + 1, hap1, alt_map) == getAllele(incl_end + 1, hap2, alt_map))){
         ++incl_end;
@@ -207,7 +206,7 @@ std::string processSeed(int hap1, int hap2, int start, int incl_end, int max_gap
     }
 }
 
-std::string processSeed(int hap1, int hap2, int start, int incl_end, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, double min_seed, double min_extend, int min_seed_markers, int min_extend_markers, double min_output, std::map<int, std::vector<int>> &alt_map){
+std::string processSeed(int hap1, int hap2, int start, int incl_end, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, double min_seed, double min_extend, int min_seed_markers, int min_extend_markers, double min_output, std::unordered_map<int, std::bitset<MAX_N_SAMPLES>> &alt_map){
     std::stringstream out;
     
     start = extendStart(hap1, hap2, start, max_gap, site_mapping, gen_map, min_seed, min_extend, min_seed_markers, min_extend_markers, alt_map);
@@ -247,7 +246,7 @@ int extendBoundaryStart(int hap1, int hap2, int start, std::vector<std::vector<i
     return m + 1;
 }
 
-int extendBoundaryStart(int hap1, int hap2, int start, std::map<int, std::vector<int>> &alt_map){
+int extendBoundaryStart(int hap1, int hap2, int start, std::unordered_map<int, std::bitset<MAX_N_SAMPLES>> &alt_map){
     if (start == 0){
         return start;
     }
@@ -288,7 +287,7 @@ int extendBoundaryEnd(int hap1, int hap2, int incl_end, std::vector<int> &site_m
     return m - 1;
 }
 
-int extendBoundaryEnd(int hap1, int hap2, int incl_end, std::vector<int> &site_mapping, std::map<int, std::vector<int>> &alt_map){
+int extendBoundaryEnd(int hap1, int hap2, int incl_end, std::vector<int> &site_mapping, std::unordered_map<int, std::bitset<MAX_N_SAMPLES>> &alt_map){
     int last_marker = site_mapping.size() - 1;
     if (incl_end == last_marker){
         return incl_end;

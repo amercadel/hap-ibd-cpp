@@ -120,7 +120,7 @@ std::vector<char*> splitVCFByPos(char* input_vcf, std::vector<std::pair<int, int
 }
 
 
-void getSiteMappingAndGenotypes(char* vcf_file, std::map<int, std::vector<int>> &alt_map, std::vector<int> &site_mapping, int n_threads){
+void getSiteMappingAndGenotypes(char* vcf_file, std::unordered_map<int, std::bitset<MAX_N_SAMPLES>> &alt_map, std::vector<int> &site_mapping, int n_threads){
     htsFile *fp = hts_open(vcf_file, "r");
     // hts_set_threads(fp, n_threads); 
     if(!fp){
@@ -146,7 +146,7 @@ void getSiteMappingAndGenotypes(char* vcf_file, std::map<int, std::vector<int>> 
         int32_t pos = rec->pos + 1;
         site_mapping.push_back(pos);
         bcf_unpack(rec, BCF_UN_ALL);
-        std::vector<int> alleles;
+        std::bitset<MAX_N_SAMPLES> alleles;
 
 
         int n_samples = bcf_hdr_nsamples(hdr);
@@ -157,12 +157,8 @@ void getSiteMappingAndGenotypes(char* vcf_file, std::map<int, std::vector<int>> 
                 int allele1_gt = bcf_gt_allele(allele1);
                 int allele2 = gt_arr[2*i + 1];
                 int allele2_gt = bcf_gt_allele(allele2);
-                if(allele1_gt != 0){
-                    alleles.push_back(2 * i);
-                }
-                if(allele2_gt != 0){
-                    alleles.push_back(2 * i + 1);
-                }
+                alleles[2 * i] = allele1_gt;
+                alleles[2 * i + 1] = allele2_gt;                
             }
         }
         alt_map[c] = alleles;
@@ -175,16 +171,9 @@ void getSiteMappingAndGenotypes(char* vcf_file, std::map<int, std::vector<int>> 
     hts_close(fp);
 }
 
-int getAllele(int site, int hap, std::map<int, std::vector<int>> &alt_map){
-    std::vector<int> alts = alt_map[site];
-    bool isAlt = false;
-    int i = 0;
-    while((i < alts.size()) && (alts[i] < site)){
-        if(alts[i] == hap){
-            isAlt = true;
-            break;
-        }
-        i++;
-    }
-    return isAlt ? 1 : 0;
+int getAllele(int site, int hap, std::unordered_map<int, std::bitset<MAX_N_SAMPLES>> &alt_map){
+    std::bitset<MAX_N_SAMPLES> alts = alt_map[site];
+    int rev_pos = (MAX_N_SAMPLES - 1) - hap; // the bitset acts like a binary number, so additional bits are added to the left; we just need to do a little bit of math to get the right "array" access index
+    int allele = alts.test(rev_pos);
+    return allele;
 }

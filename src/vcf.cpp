@@ -65,9 +65,6 @@ void getSiteMappingAndGenotypes(char* vcf_file, std::vector<std::vector<int>> &g
     bcf_close(fp);
 }
 
-
-
-
 std::vector<char*> splitVCFByPos(char* input_vcf, std::vector<std::pair<int, int>> &overlapping_windows){
     htsFile *input = hts_open(input_vcf, "r");
     if(!input){

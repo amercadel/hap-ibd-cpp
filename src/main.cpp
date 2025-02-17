@@ -11,6 +11,7 @@
 #include "match.hpp"
 #include "vcf.hpp"
 #include "utils.hpp"
+#include "params.hpp"
 extern "C"
 {
 #include "pbwt.h"
@@ -19,22 +20,21 @@ extern "C"
 
 class hapIBDCpp{
 	public:
-		hapIBDCpp(char* input_vcf, char* plink_rate_map, int n_threads, const char* output_file_path = "output.txt", double min_seed = 2.0f, int max_gap = 1000, 
-					double min_extend = 1.0f, double min_output = 2.0f, int min_markers = 100, int min_mac = 2){
-			this->input_vcf = input_vcf;
-			this->plink_rate_map = plink_rate_map;
-			this->output_file_path = output_file_path;
-			getSiteMappingAndGenotypes(input_vcf, this->genotype_array, this->site_mapping, this->n_threads);
-			// getSiteMappingAndGenotypes(input_vcf, this->alt_map, this->site_mapping, this->n_threads);
-			this->gen_map = readRateMap(plink_rate_map, site_mapping);
-			this->min_seed = min_seed;
-			this->max_gap = max_gap;
-			this->min_extend = std::min(1.0, this->min_seed);
-			this->min_output = min_output;
-			this->min_markers = min_markers;
-			this->min_mac = min_mac;
+		hapIBDCpp(hap_ibd_parameters params){
+			this->input_vcf = params.input_vcf;
+			this->plink_rate_map = params.map_file;
+			this->output_file_path = params.output_file;
+			getSiteMappingAndGenotypes(this->input_vcf, this->genotype_array, this->site_mapping, this->n_threads);
+			// getSiteMappingAndGenotypes(this->input_vcf, this->alt_map, this->site_mapping, this->n_threads);
+			this->gen_map = readRateMap(this->plink_rate_map, site_mapping);
+			this->min_seed = params.min_seed;
+			this->max_gap = params.max_gap;
+			this->min_extend = std::min(1.0, params.min_seed);
+			this->min_output = params.min_output;
+			this->min_markers = params.min_markers;
+			this->min_mac = params.min_mac;
 			this->min_markers_extend = floor((this->min_extend/this->min_seed) * this->min_markers);
-			this->n_threads = n_threads;
+			this->n_threads = params.n_threads;
 			this->cm_threshold_sites =  minSites(this->gen_map.interpolated_cm, this->min_seed);
 
 
@@ -54,15 +54,8 @@ class hapIBDCpp{
 			}
 
 			outputSegments();
-
-			
-	
-	
 			
 	}
-
-
-
 	private:
 		char* input_vcf;
 		char* plink_rate_map;
@@ -81,7 +74,7 @@ class hapIBDCpp{
 		rateMapData gen_map;
 		std::vector<int> site_mapping;
 		std::vector<std::vector<int>> genotype_array;
-		// std::unordered_map<int, std::bitset<MAX_N_SAMPLES>> alt_map;
+		std::unordered_map<int, std::bitset<MAX_N_SAMPLES>> alt_map;
 		std::set<std::string> output_strs;
 		std::vector<std::pair<int, int>> windows;
 		
@@ -169,20 +162,71 @@ class hapIBDCpp{
 };
 
 
+void printUsage(){
+	std::cout << "hap-ibd-cpp\n";
+	std::cout << "Usage: ./hap-ibd -i {input-vcf} -m {plink-rate-map-file} -o {output-file-path}" << std::endl;
+	std::cout << "Optional Parameters:" << std::endl;
+	std::cout << "  -s: min-seed    default: 2.0" << std::endl;
+	std::cout << "  -g: max-gap     default: 1000" << std::endl;
+	std::cout << "  -e min-extend   default: 1.0" << std::endl;
+	std::cout << "  -m min-output   default: 2.0" << std::endl;
+	std::cout << "  -k min-markers  default: 100" << std::endl;
+	std::cout << "  -a min-mac      default: 2" << std::endl;
+	std::cout << "  -t n-threads    default: 1" << std::endl;
+}
+
 
 int main(int argc, char **argv){
-	auto start = std::chrono::steady_clock::now();
-	char *input_vcf = argv[1];
-	char *plink_rate_map = argv[2];
-	int n_threads = std::stoi(argv[3]);
 	
-	hapIBDCpp obj(input_vcf, plink_rate_map, n_threads);
+	auto start = std::chrono::steady_clock::now();
+	
+	if (argc == 1){
+		printUsage();
+		return 0;
+	}
+	hap_ibd_parameters params;
+	for(int i = 0; i < argc; i++){
+		if (std::string(argv[i]) == "-i") {
+			params.input_vcf = argv[++i];
+		} else if (std::string(argv[i]) == "-m") {
+			params.map_file = argv[++i];
+		} else if (std::string(argv[i]) == "-o") {
+			params.output_file = argv[++i];
+		} else if (std::string(argv[i]) == "-s") {
+			params.min_seed = std::stod(argv[++i]);
+		} else if (std::string(argv[i]) == "-g") {
+			params.max_gap = std::stoi(argv[++i]);
+		} else if (std::string(argv[i]) == "-e") {
+			params.min_extend = std::stod(argv[++i]);
+		} else if (std::string(argv[i]) == "-m") {
+			params.min_output = std::stod(argv[++i]);
+		} else if (std::string(argv[i]) == "-k") {
+			params.min_markers = std::stoi(argv[++i]);
+		} else if (std::string(argv[i]) == "-a") {
+			params.min_mac = std::stoi(argv[++i]);
+		} else if (std::string(argv[i]) == "-t") {
+			params.n_threads = std::stoi(argv[++i]);
+		}
+	}
+
+	std::cout << "input-vcf: " << params.input_vcf << std::endl;
+	std::cout << "plink-rate-map-file: " << params.map_file << std::endl;
+	std::cout << "output-file-path: " << params.output_file << std::endl;
+	std::cout << "min-seed: " << params.min_seed << std::endl;
+	std::cout << "max-gap: " << params.max_gap << std::endl;
+	std::cout << "min-extend: " << params.min_extend << std::endl;
+	std::cout << "min-output: " << params.min_output << std::endl;
+	std::cout << "min-markers: " << params.min_markers << std::endl;
+	std::cout << "min-mac: " << params.min_mac << std::endl;
+	std::cout << "n-threads: " << params.n_threads << std::endl;
+	
+	hapIBDCpp obj(params);
 	
 	
 	auto end = std::chrono::steady_clock::now();
     auto diff = end - start;
 	
-    std::cout << std::chrono::duration<double>(diff).count() << " seconds" << std::endl;
+    std::cout << "time elapsed: " << std::chrono::duration<double>(diff).count() << " seconds" << std::endl;
 	
 
 

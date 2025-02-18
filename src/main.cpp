@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 #include <chrono>
-#include <thread>
 #include <set>
 #include <filesystem>
 #include <unordered_set>
@@ -35,23 +34,28 @@ class hapIBDCpp{
 			this->min_mac = params.min_mac;
 			this->min_markers_extend = floor((this->min_extend/this->min_seed) * this->min_markers);
 			this->n_threads = params.n_threads;
-			this->cm_threshold_sites =  minSites(this->gen_map.interpolated_cm, this->min_seed);
+			this->cm_threshold_sites = minSites(this->gen_map.interpolated_cm, this->min_seed);
 
 
-			this->windows = overlappingWindows(this->gen_map.interpolated_cm, this->min_seed, this->min_markers, this->n_threads);
+			this->windows = overlappingWindows(this->gen_map.interpolated_cm, this->min_seed, this->n_threads);
 			this->intermediate_files = splitVCFByPos(this->input_vcf, windows);
 			
 
 
-
-			std::vector<std::thread> threads;
-			for(int i = 0; i < this->n_threads; ++i){
-				std::thread t([this, i]() { run(intermediate_files[i], i); });
-				threads.push_back(std::move(t)); // Use std::move to move the thread object
+			if(this->n_threads > 1){
+				std::vector<std::thread> threads;
+				for(int i = 0; i < this->n_threads; ++i){
+					std::thread t([this, i]() { run(intermediate_files[i], i); });
+					threads.push_back(std::move(t)); // Use std::move to move the thread object
+				}	
+				for(auto& t: threads){
+					t.join();
+				}
 			}
-			for(auto& t: threads){
-				t.join();
+			else{
+				run(intermediate_files[0], 0);
 			}
+			
 
 			outputSegments();
 			
@@ -85,6 +89,7 @@ class hapIBDCpp{
 				pbwtDestroy(p);
 			}
 			p = pbwtReadVcfGT(input_vcf);
+			std::cout << this->cm_threshold_sites << std::endl;
 			int* raw_matches = pbwtLongMatches(p, this->cm_threshold_sites, index);
 			return raw_matches;
 
@@ -117,10 +122,11 @@ class hapIBDCpp{
 					}
 				i = i + 4;
 			}
+			std::cout << i / 4 << std::endl;
 			return seeds;
 
 		}
-		void processSeeds(std::vector<Match> seeds){
+		void processSeeds(std::vector<Match> &seeds){
 			for(size_t c = 0; c < seeds.size(); c++){				
 				
 				Match m = seeds[c];

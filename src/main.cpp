@@ -13,7 +13,7 @@
 #include "params.hpp"
 extern "C"
 {
-#include "pbwt.h"
+#include "array.h"
 }
 
 
@@ -35,25 +35,42 @@ class hapIBDCpp{
 			this->min_markers_extend = floor((this->min_extend/this->min_seed) * this->min_markers);
 			this->n_threads = params.n_threads;
 			this->cm_threshold_sites = minSites(this->gen_map.interpolated_cm, this->min_seed);
+			pbwtInit();
+			this->p = 0;
+			if(this->p){
+				pbwtDestroy(this->p);
+				die("Critical error");
+			}
+			this->p = pbwtReadVcfGT(this->input_vcf);
 
 
 			this->windows = overlappingWindows(this->gen_map.interpolated_cm, this->min_seed, this->n_threads);
-			this->intermediate_files = splitVCFByPos(this->input_vcf, windows);
 			
 
 
 			if(this->n_threads > 1){
+				
+
+				std::vector<PBWT*> pbwt_vec;
+
+				for(int i = 0; i < this->n_threads; i++){
+					std::pair<int, int> pa = windows[i];
+					Array a = createRangeArray(p, pa.first, pa.second);
+					PBWT* pt = 0;
+					pt = pbwtSelectSites(p, a, true);
+					pbwt_vec.push_back(pt);
+				}
 				std::vector<std::thread> threads;
-				for(int i = 0; i < this->n_threads; ++i){
-					std::thread t([this, i]() { run(intermediate_files[i], i); });
+				for(int j = 0; j < this->n_threads; ++j){
+					std::thread t(&hapIBDCpp::run, this, pbwt_vec[j], j);
 					threads.push_back(std::move(t)); // Use std::move to move the thread object
-				}	
+				}
 				for(auto& t: threads){
 					t.join();
 				}
 			}
 			else{
-				run(intermediate_files[0], 0);
+				run(p, 0);
 			}
 			
 
@@ -61,6 +78,9 @@ class hapIBDCpp{
 			
 	}
 	private:
+
+		PBWT* p;
+
 		char* input_vcf;
 		char* plink_rate_map;
 		const char* output_file_path;
@@ -82,18 +102,9 @@ class hapIBDCpp{
 		std::set<std::string> output_strs;
 		std::vector<std::pair<int, int>> windows;
 		
-		int* runPBWT(char* input_vcf, int index){
-			pbwtInit();
-			PBWT* p = 0;
-			if(p){
-				pbwtDestroy(p);
-			}
-			p = pbwtReadVcfGT(input_vcf);
-			std::cout << this->cm_threshold_sites << std::endl;
-			int* raw_matches = pbwtLongMatches(p, this->cm_threshold_sites, index);
+		int* runPBWT(PBWT* split_p, int index){
+			int* raw_matches = pbwtLongMatches(split_p, this->cm_threshold_sites, index);
 			return raw_matches;
-
-			
 
 		}
 
@@ -122,7 +133,7 @@ class hapIBDCpp{
 					}
 				i = i + 4;
 			}
-			std::cout << i / 4 << std::endl;
+			
 			return seeds;
 
 		}
@@ -141,8 +152,8 @@ class hapIBDCpp{
 			
 		}
 
-		void run(char* split_vcf, int index){
-			int* raw_matches = runPBWT(this->intermediate_files[index], index);
+		void run(PBWT* split_p, int index){
+			int* raw_matches = runPBWT(split_p, index);
 			std::vector<Match> filtered_matches = getMatches(raw_matches, index);
 			processSeeds(filtered_matches);
 
@@ -157,12 +168,6 @@ class hapIBDCpp{
 				output_file.close();
 			} else {
 				std::cerr << "Unable to open file: " << this->output_file_path << std::endl;
-			}
-			for(int i = 0; i < this->n_threads; i++){
-				bool ret = std::filesystem::remove(this->intermediate_files[i]);
-				if(!ret){
-					std::cerr << "Error removing intermediate files\n";
-				}
 			}
 		}
 };

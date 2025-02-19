@@ -71,61 +71,6 @@ void getSiteMappingAndGenotypes(char* vcf_file, std::vector<std::vector<int>> &g
 }
 
 
-
-
-std::vector<char*> splitVCFByPos(char* input_vcf, std::vector<std::pair<int, int>> &overlapping_windows){
-    htsFile *input = hts_open(input_vcf, "r");
-    if(!input){
-        std::cerr << "Error: htslib is unable to open the VCF file\n";
-        hts_close(input);
-    }
-    bcf_hdr_t *hdr = bcf_hdr_read(input);
-    bcf1_t *rec = bcf_init();
-    int curr_index = 0;
-    std::vector<char*> file_names;
-    std::vector<htsFile*> output_files(overlapping_windows.size());
-
-    for(size_t i = 0; i < output_files.size(); i++){
-        std::ostringstream oss;
-        oss << "intermediate_vcf_" << overlapping_windows[i].first << "_" << overlapping_windows[i].second << ".vcf";
-        std::string output_file_name = oss.str();
-        char* output_file_name_cstr = new char[output_file_name.length() + 1];
-        strcpy(output_file_name_cstr, output_file_name.c_str());
-        file_names.push_back(output_file_name_cstr);
-        output_files[i] = hts_open(output_file_name_cstr, "w"); 
-        if(!output_files[i]){
-            std::cerr << "Error: htslib is unable to open a VCF file";
-        }
-        int ret = bcf_hdr_write(output_files[i], hdr);
-        if (ret != 0){
-            std::cerr << "failed to write new vcf file\n";
-            
-        }
-
-    }
-    while(bcf_read(input, hdr, rec) == 0){
-        for(size_t c = 0; c < output_files.size(); c++){ // iterate through output files
-            if(overlapping_windows[c].first <= curr_index && curr_index <= overlapping_windows[c].second){ // check if current index is between the corresponding window
-                int ret = bcf_write(output_files[c], hdr, rec); // if so, write that line/record to the current file
-                if(ret != 0){
-                    std::cerr << "HTSLIB failed to write record";
-                }
-            }
-        }
-        curr_index++;
-    }
-    for(size_t i = 0; i < output_files.size(); i++){
-        hts_close(output_files[i]);
-    }
-    hts_close(input);
-    bcf_destroy(rec);
-    bcf_hdr_destroy(hdr);
-    return file_names;
-    
-
-}
-
-
 void getSiteMappingAndGenotypes(char* vcf_file, std::unordered_map<int, std::bitset<MAX_N_SAMPLES>> &alt_map, std::vector<int> &site_mapping, int n_threads){
     htsFile *fp = hts_open(vcf_file, "r");
     // hts_set_threads(fp, n_threads); 

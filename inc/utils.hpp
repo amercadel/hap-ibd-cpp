@@ -1,7 +1,11 @@
 #pragma once
 #include <vector>
 #include <cmath>
-
+extern "C"{
+#include "array.h"
+#include "pbwt.h"
+}
+    
 
 // simple binary search for an insertion index if you need to only search a certain subset of a vector
 // OUTPUT: where a value would be inserted into vector to keep it sorted
@@ -72,6 +76,8 @@ T roundToNDigits(T num, int n_digits){
 // OUTPUT: a vector of pairs representing where to split the VCF to guarantee seed will be found
 std::vector<std::pair<int, int>> overlappingWindows(std::vector<double> &cm, double min_seed, int n_threads);
 int minSites(std::vector<double> &cm_mapping, double min_seed);
+
+Array createRangeArray(PBWT* p, int start, int end);
 
 
 

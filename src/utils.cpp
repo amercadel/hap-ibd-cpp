@@ -38,3 +38,13 @@ int minSites(std::vector<double> &cm_mapping, double min_seed) {
 }
 
 
+Array createRangeArray(PBWT* p, int start, int end) {
+    Array array = arrayCreate(end - start + 1, Site);
+    for (int i = start; i <= end; ++i) {
+        array(array, i - start, Site) = arr(p->sites, i, Site);
+    }
+
+    return array;
+}
+
+

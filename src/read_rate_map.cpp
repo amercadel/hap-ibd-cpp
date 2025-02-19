@@ -110,7 +110,6 @@ rateMapData readRateMap(char* filename, std::vector<int> &sites){
     std::vector<int> bp_vec;
     std::vector<double> cm_vec;
     inputFile.open(filename);
-    std::cout << "reading genetic map file\n";
     rateMapData res;
     while (getline(inputFile, line)) {
         int bp;
@@ -124,13 +123,11 @@ rateMapData readRateMap(char* filename, std::vector<int> &sites){
         cm_vec.push_back(cm);
 
     }
-    std::cout << "rate map loaded into memory\n";
+    
     res.bp_vec = bp_vec;
     res.cm_vec = cm_vec;
     res.last_bp = bp_vec[bp_vec.size() - 1];
     res.last_cm = cm_vec[cm_vec.size() - 1];
-    std::cout << "interpolating rate map\n";
     res.interpolated_cm = res.interpolateVector(sites);
-    std::cout << "rate map interpolated\n";
     return res;
 }

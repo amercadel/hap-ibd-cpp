@@ -5,8 +5,6 @@
 #include <chrono>
 #include <set>
 #include <filesystem>
-#include <unordered_set>
-
 #include "match.hpp"
 #include "vcf.hpp"
 #include "utils.hpp"
@@ -24,7 +22,7 @@ class hapIBDCpp{
 			this->plink_rate_map = params.map_file;
 			this->output_file_path = params.output_file;
 			getSiteMappingAndGenotypes(this->input_vcf, this->genotype_array, this->site_mapping, this->n_threads);
-			// getSiteMappingAndGenotypes(this->input_vcf, this->alt_map, this->site_mapping, this->n_threads);
+			
 			this->gen_map = readRateMap(this->plink_rate_map, site_mapping);
 			this->min_seed = params.min_seed;
 			this->max_gap = params.max_gap;
@@ -39,7 +37,7 @@ class hapIBDCpp{
 			this->p = 0;
 			if(this->p){
 				pbwtDestroy(this->p);
-				die("Critical error");
+				exit(1);
 			}
 			this->p = pbwtReadVcfGT(this->input_vcf);
 
@@ -98,7 +96,7 @@ class hapIBDCpp{
 		rateMapData gen_map;
 		std::vector<int> site_mapping;
 		std::vector<std::vector<int>> genotype_array;
-		std::unordered_map<int, std::bitset<MAX_N_SAMPLES>> alt_map;
+
 		std::set<std::string> output_strs;
 		std::vector<std::pair<int, int>> windows;
 		
@@ -115,12 +113,10 @@ class hapIBDCpp{
 				Match m(matches_array[i], matches_array[i+1], matches_array[i+2] + this->windows[index].first, matches_array[i+3] + this->windows[index].first);
 				if((m.start_site == this->windows[index].first) && (m.start_site != 0)){ // no need to check for extension if it starts at 0
 					m.start_site = extendBoundaryStart(m.hap1, m.hap2, m.start_site, this->genotype_array);
-					// m.start_site = extendBoundaryStart(m.hap1, m.hap2, m.start_site, this->alt_map);
 
 				}
 				if(m.end_site == this->windows[index].second){
 					m.end_site = extendBoundaryEnd(m.hap1, m.hap2, m.end_site, this->site_mapping, this->genotype_array);
-					// m.end_site = extendBoundaryEnd(m.hap1, m.hap2, m.end_site, this->site_mapping, this->alt_map);
 				}
 				m.n_sites = m.end_site - m.start_site;
 				
@@ -143,7 +139,6 @@ class hapIBDCpp{
 				Match m = seeds[c];
 				std::string out;
 				out = processSeed(m.hap1, m.hap2, m.start_site, m.end_site, this->max_gap, this->site_mapping, this->matches, this->gen_map, this->min_seed, this->min_extend, this->min_markers, this->min_markers_extend, this->min_output, this->genotype_array);
-				// out = processSeed(m.hap1, m.hap2, m.start_site, m.end_site, this->max_gap, this->site_mapping, this->matches, this->gen_map, this->min_seed, this->min_extend, this->min_markers, this->min_markers_extend, this->min_output, this->alt_map);
 				if(!out.empty()){
 					this->output_strs.insert(out);
 				}

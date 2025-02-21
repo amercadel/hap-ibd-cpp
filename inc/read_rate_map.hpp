@@ -1,14 +1,5 @@
-#pragma once
-#include <vector>
-#include <iostream>
-#include <cmath>
-#include <algorithm>
-#include <cassert>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <cstdlib> 
+#ifndef READ_RATE_MAP_HPP
+#define READ_RATE_MAP_HPP
 #include "utils.hpp"
 
 
@@ -38,3 +29,5 @@ double getGeneticPosition(std::vector<double> &interpolated_cm, int site_idx);
 // simple splitting function
 // OUTPUT: a vector of strings, split based on delim
 std::vector<std::string> split(std::string &line, char delim);
+
+#endif

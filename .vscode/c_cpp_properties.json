@@ -4,12 +4,10 @@
             "name": "Mac",
             "includePath": [
                 "${default}",
-                "${workspaceFolder}/pbwt",
-                "${workspaceFolder}/htslib",
-                "${workspaceFolder}/htslib/htslib",
-                "${workspaceFolder}/inc",
-                "${workspaceFolder}/htslib",
-                "${workspaceFolder}/htslib"
+                "${workspaceFolder}/pbwt_am",
+                "${workspaceFolder}/subprojects/htslib-1.20/htslib",
+                "${workspaceFolder}/subprojects/htslib-1.20",
+                "${workspaceFolder}/inc"
             ],
             "defines": [],
             "macFrameworkPath": [
@@ -17,7 +15,10 @@
             ],
             "intelliSenseMode": "macos-clang-x64",
             "compilerPath": "/usr/bin/g++",
-            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+            "compileCommands": [
+                "${workspaceFolder}/build/compile_commands.json"
+            ],
+            "cppStandard": "c++20"
         }
     ],
     "version": 4

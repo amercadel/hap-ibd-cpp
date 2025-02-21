@@ -1,6 +1,3 @@
-#include <utility>
-#include <string>
-#include <sstream>
 #include "utils.hpp"
 
 std::vector<std::pair<int, int>> overlappingWindows(std::vector<double> &cm, double min_seed, int n_threads){
@@ -46,5 +43,13 @@ Array createRangeArray(PBWT* p, int start, int end) {
 
     return array;
 }
+
+std::string boolToString(bool b){
+    return b ? "true" : "false";
+}
+
+
+
+
 
 

@@ -1,19 +1,22 @@
-#pragma once
+#ifndef VCF_HPP
+#define VCF_HPP
 #include <vector>
-#include <unordered_map>
 #include <unordered_set>
-#include <bitset>
-#include <thread>
+#include <stdexcept>
+#include <fstream>
+
+extern "C"
+{
+#include "htslib/vcf.h"
+#include "htslib/hts.h"
+#include "htslib/vcfutils.h"
+}
 
 
-#define MAX_N_SAMPLES 5000
+void getSiteMappingAndGenotypes(char* vcf_file, std::vector<std::vector<int>> &genotype_array, std::vector<int> &site_mapping);
+void getSiteMappingAndGenotypes(char* vcf_file, std::vector<std::unordered_set<int>> &alternate_allele_map, std::vector<int> &site_mapping);
 
 
+int getHaplotype(int site_index, int haplotype_index, std::vector<std::unordered_set<int>> &alt_map);
 
-
-
-
-
-void getSiteMappingAndGenotypes(char* vcf_file, std::vector<std::vector<int>> &genotype_array, std::vector<int> &site_mapping, int n_threads);
-void getSiteMappingAndGenotypes(char* vcf_file, std::unordered_map<int, std::bitset<MAX_N_SAMPLES>> &alt_map, std::vector<int> &site_mapping, int n_threads);
-int getAllele(int site, int hap, std::unordered_map<int, std::bitset<MAX_N_SAMPLES>> &alt_map);
+#endif

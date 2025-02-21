@@ -1,6 +1,15 @@
-#pragma once
+#ifndef UTILS_HPP
+#define UTILS_HPP
 #include <vector>
 #include <cmath>
+#include <string>
+#include <utility>
+#include <sstream>
+#include <fstream>
+#include <iostream>
+#include <chrono>
+#include <thread>
+
 extern "C"{
 #include "array.h"
 #include "pbwt.h"
@@ -79,6 +88,10 @@ int minSites(std::vector<double> &cm_mapping, double min_seed);
 
 Array createRangeArray(PBWT* p, int start, int end);
 
+
+std::string boolToString(bool b);
+
+#endif
 
 
 

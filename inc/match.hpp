@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MATCH_HPP
+#define MATCH_HPP
 #include <iostream>
 #include <vector>
 #include <sstream>
@@ -66,18 +67,30 @@ class Match{
 // OUTPUT: the next site if possible, else -1
 int nextStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site_mapping, rateMapData &gen_map, double min_seed, double min_extend, int min_seed_markers, int min_extend_markers, std::vector<std::vector<int>> &genotype_array);
 
+int nextStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site_mapping, rateMapData &gen_map, double min_seed, double min_extend, int min_seed_markers, int min_extend_markers, std::vector<std::unordered_set<int>> &alt_map);
+
+
 
 // extendStart calls nextStart until either another seed segment is found, or you reach a point where you can no longer extend (gap greater than max_gap)
 // OUTPUT: the next site if possible, else -1
 int extendStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site_mapping, rateMapData &gen_map, double min_seed, double min_extend, int min_seed_markers, int min_extend_markers, std::vector<std::vector<int>> &genotype_array);
 
+
+int extendStart(int hap1, int hap2, int start, int max_gap, std::vector<int> &site_mapping, rateMapData &gen_map, double min_seed, double min_extend, int min_seed_markers, int min_extend_markers, std::vector<std::unordered_set<int>> &alt_map);
+
 // nextInclEnd moves forward to find a potential extension after the end of a seed
 // OUTPUT: the next site for an extension (if possible)
 int nextInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> &site_mapping, rateMapData &gen_map, double min_seed, double min_extend, int min_extend_markers, std::vector<std::vector<int>> &genotype_array);
 
+
+int nextInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> &site_mapping, rateMapData &gen_map, double min_seed, double min_extend, int min_extend_markers, std::vector<std::unordered_set<int>> &alt_map);
+
 // extendInclEnd calls nextInclEnd until it can no longer be extended
 // OUTPUT: the last possible site after extension (if possible)
 int extendInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> &site_mapping, rateMapData &gen_map, double min_seed, double min_extend, int min_extend_markers, std::vector<std::vector<int>> &genotype_array);
+
+int extendInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> &site_mapping, rateMapData &gen_map, double min_seed, double min_extend, int min_extend_markers, std::vector<std::unordered_set<int>> &alt_map);
+
 
 // simple function to match the output format of hap-IBD's original implentation
 // OUTPUT: string in the format of hap-IBD
@@ -91,10 +104,16 @@ std::string hapToTskId(int hap);
 // OUTPUT: the output string
 std::string processSeed(int hap1, int hap2, int start, int incl_end, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, double min_seed, double min_extend, int min_seed_markers, int min_extend_markers, double min_output, std::vector<std::vector<int>> &genotype_array);
 
+std::string processSeed(int hap1, int hap2, int start, int incl_end, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, double min_seed, double min_extend, int min_seed_markers, int min_extend_markers, double min_output, std::vector<std::unordered_set<int>> &alt_map);
 
 int extendBoundaryEnd(int hap1, int hap2, int incl_end, std::vector<int> &site_mapping, std::vector<std::vector<int>> &genotype_array);
 
+int extendBoundaryEnd(int hap1, int hap2, int incl_end, std::vector<int> &site_mapping, std::vector<std::unordered_set<int>> &alt_map);
+
 int extendBoundaryStart(int hap1, int hap2, int start, std::vector<std::vector<int>> &genotype_array);
 
+int extendBoundaryStart(int hap1, int hap2, int start, std::vector<std::unordered_set<int>> &alt_map);
+
+#endif
 
 

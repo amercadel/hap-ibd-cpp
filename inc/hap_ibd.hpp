@@ -87,6 +87,7 @@ class hapIBDCpp{
 		int n_threads;
 		int cm_threshold_sites;
 		bool use_hash_set = false;
+		std::mutex mtx;
 
 
 		std::vector<Match> matches;
@@ -156,11 +157,11 @@ class hapIBDCpp{
 					out = processSeed(m.hap1, m.hap2, m.start_site, m.end_site, this->max_gap, this->site_mapping, this->matches, this->gen_map, this->min_seed, this->min_extend, this->min_markers, this->min_markers_extend, this->min_output, this->genotype_array);
 				}
 				if(!out.empty()){
+					std::lock_guard<std::mutex> lock(mtx);
 					this->output_strs.insert(out);
 				}
 				
 			}
-			
 		}
 
 		void run(PBWT* split_p, int index){

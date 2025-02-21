@@ -2,14 +2,6 @@
 #include "utils.hpp"
 
 double getGeneticPosition(std::vector<double> &interpolated_cm, int site_idx){
-    // assert(site_idx < interpolated_cm.size());
-    // if(site_idx < interpolated_cm.size()){
-    //     return interpolated_cm[site_idx];
-    // }
-    // else{
-    //     std::cerr << "Site outside of interolated map\n";
-    //     exit(EXIT_FAILURE);
-    // }
     return interpolated_cm[site_idx];
 	
 }

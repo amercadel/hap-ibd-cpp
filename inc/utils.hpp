@@ -86,9 +86,12 @@ T roundToNDigits(T num, int n_digits){
 std::vector<std::pair<int, int>> overlappingWindows(std::vector<double> &cm, double min_seed, int n_threads);
 int minSites(std::vector<double> &cm_mapping, double min_seed);
 
+
+// creates an array (using Durbin's in-house implementation in order to use for subsetting a PBWT struct)
+// OUTPUT: an Array ranging from start to end (both inclusive)
 Array createRangeArray(PBWT* p, int start, int end);
 
-
+// simple function for outputting a bool to a string
 std::string boolToString(bool b);
 
 #endif

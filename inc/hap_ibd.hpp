@@ -14,6 +14,7 @@ class hapIBDCpp{
 			if(params.use_hash_set){
 				getSiteMappingAndGenotypes(this->input_vcf, this->alt_map, this->site_mapping);
 			}else{
+				// still faster as of 2/20
 				getSiteMappingAndGenotypes(this->input_vcf, this->genotype_array, this->site_mapping);
 			}			
 			this->gen_map = readRateMap(this->plink_rate_map, site_mapping);
@@ -47,15 +48,15 @@ class hapIBDCpp{
 
 				for(int i = 0; i < this->n_threads; i++){
 					std::pair<int, int> pa = windows[i];
-					Array a = createRangeArray(p, pa.first, pa.second);
+					Array a = createRangeArray(p, pa.first, pa.second); // create range of sites for overlapping windows
 					PBWT* pt = 0;
-					pt = pbwtSelectSites(p, a, true);
+					pt = pbwtSelectSites(p, a, true); // split pbwt struct based on overlapping windows
 					pbwt_vec.push_back(pt);
 				}
 				std::vector<std::thread> threads;
 				for(int j = 0; j < this->n_threads; ++j){
 					std::thread t(&hapIBDCpp::run, this, pbwt_vec[j], j);
-					threads.push_back(std::move(t)); // Use std::move to move the thread object
+					threads.push_back(std::move(t));
 				}
 				for(auto& t: threads){
 					t.join();

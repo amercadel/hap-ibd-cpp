@@ -61,7 +61,6 @@ class Match{
 };
 
 
-// apologies for the unwieldy arguments, will be fixed later
 // nextStart moves backwards to find a potential extension before the beginning of a seed
 // if another seed segment is directly adjacent to it moving backwards, the seed is discarded, since the seed will be included when that previous seed is extended forward
 // OUTPUT: the next site if possible, else -1
@@ -106,10 +105,14 @@ std::string processSeed(int hap1, int hap2, int start, int incl_end, int max_gap
 
 std::string processSeed(int hap1, int hap2, int start, int incl_end, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, double min_seed, double min_extend, int min_seed_markers, int min_extend_markers, double min_output, std::vector<std::unordered_set<int>> &alt_map);
 
+// if the end of a segment is still cut off by one of the overlapping windows, extends seed
+// OUTPUT: integer value representing the end site index
 int extendBoundaryEnd(int hap1, int hap2, int incl_end, std::vector<int> &site_mapping, std::vector<std::vector<int>> &genotype_array);
 
 int extendBoundaryEnd(int hap1, int hap2, int incl_end, std::vector<int> &site_mapping, std::vector<std::unordered_set<int>> &alt_map);
 
+// if the beginning of a segment is still cut off by one of the overlapping windows,  extends seed
+// OUTPUT: integer value representing the start site index
 int extendBoundaryStart(int hap1, int hap2, int start, std::vector<std::vector<int>> &genotype_array);
 
 int extendBoundaryStart(int hap1, int hap2, int start, std::vector<std::unordered_set<int>> &alt_map);

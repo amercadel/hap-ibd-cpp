@@ -119,8 +119,6 @@ int nextInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> 
     return (len<min_extend || (m-first_match)<(min_extend_markers - 1)) ? incl_end : m;
 }
 
-
-
 int nextInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int> &site_mapping, rateMapData &gen_map, double min_seed, double min_extend, int min_extend_markers, std::vector<std::unordered_set<int>> &alt_map){
     int last_marker = site_mapping.size() - 1;
     if ((incl_end>(last_marker - 2)) || (max_gap < 0)) {
@@ -179,15 +177,6 @@ int extendInclEnd(int hap1, int hap2, int incl_end, int max_gap, std::vector<int
 }
 
 
-std::string hapToTskId(int hap){
-    int id = hap / 2;
-    int hap_id = (hap % 2) + 1;
-    std::string ret;
-    ret = "tsk_" + std::to_string(id) + "\t" + std::to_string(hap_id);
-    return ret;
-}
-
-
 std::string processSeed(int hap1, int hap2, int start, int incl_end, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, double min_seed, double min_extend, int min_seed_markers, int min_extend_markers, double min_output, std::vector<std::vector<int>> &genotype_array){
     std::stringstream out;
     
@@ -206,7 +195,6 @@ std::string processSeed(int hap1, int hap2, int start, int incl_end, int max_gap
         return "";
     }
 }
-
 
 std::string processSeed(int hap1, int hap2, int start, int incl_end, int max_gap, std::vector<int> &site_mapping, std::vector<Match> &matches, rateMapData &gen_map, double min_seed, double min_extend, int min_seed_markers, int min_extend_markers, double min_output, std::vector<std::unordered_set<int>> &alt_map){
     std::stringstream out;
@@ -249,7 +237,6 @@ int extendBoundaryStart(int hap1, int hap2, int start, std::vector<std::vector<i
     return m + 1;
 }
 
-
 int extendBoundaryStart(int hap1, int hap2, int start, std::vector<std::unordered_set<int>> &alt_map){
     if (start == 0){
         return start;
@@ -271,6 +258,7 @@ int extendBoundaryStart(int hap1, int hap2, int start, std::vector<std::unordere
     return m + 1;
 }
 
+
 int extendBoundaryEnd(int hap1, int hap2, int incl_end, std::vector<int> &site_mapping, std::vector<std::vector<int>> &genotype_array){
     int last_marker = site_mapping.size() - 1;
     if (incl_end == last_marker){
@@ -289,8 +277,6 @@ int extendBoundaryEnd(int hap1, int hap2, int incl_end, std::vector<int> &site_m
     }
     return m - 1;
 }
-
-
 
 int extendBoundaryEnd(int hap1, int hap2, int incl_end, std::vector<int> &site_mapping, std::vector<std::unordered_set<int>> &alt_map){
     int last_marker = site_mapping.size() - 1;
@@ -311,6 +297,13 @@ int extendBoundaryEnd(int hap1, int hap2, int incl_end, std::vector<int> &site_m
     return m - 1;
 }
 
+std::string hapToTskId(int hap){
+    int id = hap / 2;
+    int hap_id = (hap % 2) + 1;
+    std::string ret;
+    ret = "tsk_" + std::to_string(id) + "\t" + std::to_string(hap_id);
+    return ret;
+}
 
 
 
